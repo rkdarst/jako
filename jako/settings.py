@@ -10,7 +10,7 @@ ADMINS = (
 
 # Get sqlite database from outside of VCS
 from os.path import dirname
-dbpath = dirname(dirname(dirname(__file__)))+'/jako.sqlite'
+dbpath = dirname(dirname(dirname(__file__)))+'/db/jako.sqlite'
 del dirname
 
 MANAGERS = ADMINS
