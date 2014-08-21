@@ -10,8 +10,10 @@ ADMINS = (
 
 # Get sqlite database from outside of VCS
 from os.path import dirname
-dbpath = dirname(dirname(dirname(__file__)))+'/db/jako.sqlite'
-del dirname
+base = dirname(dirname(dirname(__file__)))
+import sys
+sys.path.append(base)
+dbpath = base+'/db/jako.sqlite'
 
 MANAGERS = ADMINS
 
@@ -56,7 +58,7 @@ USE_TZ = True
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/home/media/media.lawrence.com/media/"
-MEDIA_ROOT = ''
+MEDIA_ROOT = base+'/tmp/'
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.
@@ -92,11 +94,9 @@ STATICFILES_FINDERS = (
 SECRET_KEY = 'z-2v8e1c$cp$*1f)+ymrk&amp;m%ye#h_@hb_at8&amp;v9^b3#ijpwrnj'
 try:
     # Load custom secret key from outside of VCS
-    from os.path import dirname
     SECRET_KEY = open(dirname(dirname(dirname(
                       __file__)))+'/secret-key.txt').read().strip()
     #print SECRET_KEY
-    del dirname
 except OSError:
     pass
 
@@ -170,3 +170,9 @@ LOGGING = {
         },
     }
 }
+
+# If the site is behind a proxy, set this to True.  Note: remove in
+# production.
+USE_X_FORWARDED_HOST = True
+
+del base, dirname
