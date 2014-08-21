@@ -2,11 +2,11 @@
 
 import os.path
 
-
 from django.http import HttpResponse
-from django.shortcuts import render
-
+from django.shortcuts import render, redirect
 from django import forms
+
+from .models import Dataset, CD
 
 from pcd.ioutil import read_any
 import pcd.support.algorithms as algs
@@ -78,8 +78,14 @@ class CdSession(object):
                 return bc.__doc__
         return ''
 
+def cd_get_doc(cda):
+    for bc in cda.__mro__:
+        if bc.__doc__ is not None:
+            return bc.__doc__
+    return ''
+
+
 class NetworkForm(forms.Form):
-    #netid = forms.FileField(label="Network ID", widget=forms.HiddenInput)
     netfile = forms.FileField(label="Network file (edgelist, gml, pajek)")
 
 class CdNameForm(forms.Form):
@@ -165,3 +171,118 @@ def index(request):
     return render(request, 'cd20/cd.html', context)
 
     #return HttpResponse("Hello, world. You're at the index.")
+
+
+
+def main(request):
+    return render(request, 'cd20/main.html', locals())
+
+def new(request):
+    ds = Dataset()
+    ds.save()
+    return redirect(dataset, ds.id)
+
+def dataset(request, id):
+    id = int(id)
+    ds = Dataset.objects.get(id=id)
+    if ds.netfile:
+        netfile = os.path.basename(ds.netfile.name)
+
+    if request.method == 'POST':
+        netform = NetworkForm(request.POST, request.FILES)
+        if netform.is_valid():
+            f = request.FILES['netfile']
+            ds.netfile = f
+            netfile_upload_message = "Successfully uploaded %s"%f.name
+            ds.save()
+            ds.study_network()
+            ds.save()
+    else:
+        netform = NetworkForm()
+
+    # CD methods
+    cd_runs = ds.cd_set.all()
+    if request.method == 'POST':
+        cdnameform = CdNameForm(request.POST)
+        if cdnameform.is_valid() and cdnameform.cleaned_data['cdname']:
+            cdname = cdnameform.cleaned_data['cdname']
+            # Return existing CD run if it exists
+            run_cd = ds.cd_set.filter(name=cdname)
+            if run_cd:
+                return redirect(cdrun, ds.id, run_cd[0].name)
+            # Make new CD run
+            cd = CD(ds=ds, name=cdname)
+            cd.save()
+            return redirect(cdrun, ds.id, cdname)
+    cdnameform = CdNameForm()
+
+    print cd_runs
+
+    #from fitz import interactnow
+
+
+    return render(request, 'cd20/dataset.html', locals())
+
+
+def cdrun(request, did, cdname):
+    did = int(did)
+    ds = Dataset.objects.get(id=did)
+    cd = ds.cd_set.get(name=cdname)
+    if ds.netfile:
+        netfile = os.path.basename(ds.netfile.name)
+
+    cddoc = cd.get_cddoc()
+
+    run = False
+
+    # Make the options form
+    options = { }
+    initial = { }
+    for name, value in cd.available_options().iteritems():
+        if isinstance(value, bool):
+            options[name] = forms.BooleanField(label=name, required=False)
+            initial[name] = value
+        elif isinstance(value, int):
+            options[name] = forms.IntegerField(label=name)
+            initial[name] = value
+        elif isinstance(value, float):
+            options[name] = forms.FloatField(label=name)
+            initial[name] = value
+        elif isinstance(value, str):
+            options[name] = forms.CharField(label=name)
+            initial[name] = value
+
+    OptionForm = type('OptionForm', (forms.Form, ), options)
+    if request.method == 'POST':
+        optionform = OptionForm(request.POST)
+        if optionform.is_valid():
+            print optionform.cleaned_data
+            cd.options_dict = optionform.cleaned_data
+            run = True
+        else:
+            optionform = OptionForm(initial=initial)
+    else:
+        optionform = OptionForm(initial=initial)
+
+    # Run CD
+    if run:
+        data = cd.run()
+        #results = data['results']
+        #stdout = data['stdout']
+
+
+    if cd.state == 'D':
+        results = cd.get_results()
+        comm_str = [ ]
+        for cmtys in results:
+            cmty = [ ]
+            cmty.append('# Label: %s'%getattr(cmtys, 'label', ''))
+            for cname, cnodes in cmtys.iteritems():
+                cmty.append(' '.join(str(n) for n in cnodes))
+            comm_str.append('\n'.join(cmty))
+            comm_str.append('\n\n\n')
+        comm_str = '\n'.join(comm_str)
+
+
+
+    return render(request, 'cd20/cdrun.html', locals())
