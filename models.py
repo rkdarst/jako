@@ -175,6 +175,8 @@ class CD(models.Model):
         return data
 
     def save_results(self, results):
+        self.n_layers = len(results)
+        self.n_cmty = ','.join(str(len(cmtys)) for cmtys in results )
         for i, cmtys in enumerate(results):
             cmtys.write_clusters(join(self.basedir, 'result.%03d.txt'%i))
     def get_results(self):
