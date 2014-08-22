@@ -13,6 +13,8 @@ import pcd.support.algorithms as algs
 import pcd.cmty as cmty
 from pcd.ioutil import read_any
 
+from . import utils
+
 # Create your models here.
 
 rootdir = '/mnt/data1/srv/jako/tmp/'
@@ -142,7 +144,7 @@ class CD(models.Model):
         cda = algs.get(self.name)
         for bc in cda.__mro__:
             if bc.__doc__ is not None:
-                return bc.__doc__
+                return utils.dedent(bc.__doc__)
         return ''
 
     def run(self):
