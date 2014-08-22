@@ -15,7 +15,7 @@ from pcd.ioutil import read_any
 
 # Create your models here.
 
-rootdir = '/srv/jako/tmp/'
+rootdir = '/mnt/data1/srv/jako/tmp/'
 def netfile_upload_to(instance, filename):
     path = join(instance.basedir, filename)
     return path
