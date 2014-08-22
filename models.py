@@ -27,16 +27,31 @@ def new_ds_id():
             continue
         return id
 
+net_types = [
+    ('auto', 'Auto (edgelist, GML, Pajek)'),
+    ('adjlist', 'Adjacency list'),
+    ('multiline_adjlist', 'Multiline Adjacency list'),
+    ('edgelist', 'Edge list'),
+    ('gexf', 'GEXF'),
+    ('gml', 'GML'),
+    ('graphml', 'GraphML'),
+    ('pajek', 'Pajek'),
+    ('yaml', 'YAML'),
+    ]
+
 class Dataset(models.Model):
     id = models.AutoField(primary_key=True, default=new_ds_id)
     btime = models.DateTimeField("birth time", auto_now_add=True)
     mtime = models.DateTimeField("modification time", auto_now=True)
     atime = models.DateTimeField("access time", auto_now=True)
     netfile = models.FileField(upload_to=netfile_upload_to)
+    nettype = models.CharField(max_length=10,
+                               choices=net_types, default='auto')
 
     nodes = models.IntegerField("number of nodes", null=True)
     edges = models.IntegerField("number of edges", null=True)
-    clustc = models.IntegerField("clustering coef", null=True)
+    clustc = models.FloatField("clustering coef", null=True)
+    weighted = models.IntegerField("clustering coef", null=True)
 
     @property
     def basedir(self):
@@ -48,15 +63,40 @@ class Dataset(models.Model):
             os.mkdir(dir)
         return dir
 
+    def set_graph(self, f):
+        self.netfile = f
+        netfile_upload_message = "Successfully uploaded %s"%f.name
+        self.save()
+        try:
+            g = self.get_networkx()
+        except Exception as e:
+            netfile_upload_message = 'upload failed (%s, %s)'%(self.nettype, e)
+        self.study_network(g)
+        return netfile_upload_message
+
     def get_networkx(self):
-        print self.netfile.path
-        g = read_any(self.netfile.name)
+        if self.nettype == 'auto':
+            g = read_any(self.netfile.name)
+        else:
+            g = getattr(nx, 'read_'+self.nettype)(self.netfile.name)
         return g
-    def study_network(self):
-        g = self.get_networkx()
+    def study_network(self, g=None):
+        """Analyze network and store some properties of it.
+
+        g:
+            If given, is networkx object and network is not reloaded.
+            Just for efficiency reasons."""
+        if g is None:
+            g = self.get_networkx()
         self.nodes = len(g)
         self.edges = g.number_of_edges()
         self.clustc = nx.average_clustering(g)
+        if all('weight' in d for a,b,d in g.edges_iter(data=True)):
+            self.weighted = 1
+        elif any('weight' in d for a,b,d in g.edges_iter(data=True)):
+            self.weighted = 2
+        else:
+            self.weighted = 0
 
 
 class CD(models.Model):

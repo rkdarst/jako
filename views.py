@@ -6,6 +6,7 @@ from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django import forms
 
+import models
 from .models import Dataset, CD
 
 from pcd.ioutil import read_any
@@ -86,7 +87,10 @@ def cd_get_doc(cda):
 
 
 class NetworkForm(forms.Form):
-    netfile = forms.FileField(label="Network file (edgelist, gml, pajek)")
+    netfile = forms.FileField(label="Network file",
+                              help_text="Select network file to upload or replace existing one.")
+    nettype = forms.ChoiceField(label="Network type", choices=models.net_types,
+                                help_text="Auto recommended.  Other types are as parsed by networkx.")
 
 class CdNameForm(forms.Form):
     cdname = forms.ChoiceField(label='Method Name',
@@ -192,13 +196,11 @@ def dataset(request, id):
         netform = NetworkForm(request.POST, request.FILES)
         if netform.is_valid():
             f = request.FILES['netfile']
-            ds.netfile = f
-            netfile_upload_message = "Successfully uploaded %s"%f.name
-            ds.save()
-            ds.study_network()
+            ds.nettype = netform.cleaned_data['nettype']
+            netfile_upload_message = ds.set_graph(f)
             ds.save()
     else:
-        netform = NetworkForm()
+        netform = NetworkForm(initial={'nettype':ds.nettype})
 
     # CD methods
     cd_runs = ds.cd_set.all()
