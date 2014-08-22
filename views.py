@@ -308,6 +308,42 @@ def cdrun(request, did, cdname):
 def cmtys(request):
     pass
 
+def cmtys_viz(request, did, cdname, layer, ext=None):
+    """Interactively visualize communities.
+
+    Based on http://bl.ocks.org/mbostock/4062045
+    """
+    did = int(did)
+    ds = Dataset.objects.get(id=did)
+    cd = ds.cd_set.get(name=cdname)
+    cmtys = cd.get_results()[int(layer)]
+
+    graphjsonname = 'viz.json'
+
+    print ext
+    if ext == '.json':
+        import json
+        g = ds.get_networkx()
+        nodecmtys = cmtys.nodecmtys()
+
+        data = { }
+        nodes = data['nodes'] = [ ]
+        links = data['links'] = [ ]
+
+        node_map = dict((n, i) for i, n in enumerate(g.nodes_iter()))
+
+        for n in g.nodes_iter():
+            c = nodecmtys[n]
+            c = ','.join(str(x) for x in c)
+            color = c
+            nodes.append(dict(name=n, group=color))
+        for a,b in g.edges_iter():
+            links.append(dict(source=node_map[a], target=node_map[b], value=1))
+        print data
+        data = json.dumps(data)
+        return HttpResponse(content=data, content_type='text/plain', )
+
+    return render(request, 'cd20/cmtys_viz.html', locals())
 
 download_formats = [
     ('clusters', 'One line per community'),
