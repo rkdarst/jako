@@ -132,8 +132,12 @@ class CD(models.Model):
         for name in dir(cda):
             if name.startswith('_'):
                 continue
+            if name in set(('verbosity',)):
+                continue
             value = getattr(cda, name)
-            options[name] = value
+            options[name] = dict(value=value,
+                                 doc=getattr(cda, '_%s_doc'%name, None),
+                                 type=getattr(cda, '_%s_type'%name, None))
         return options
 
     @property

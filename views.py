@@ -17,6 +17,7 @@ cdmethods = [name for (name, cda) in vars(algs).iteritems()
 cdmethods.sort()
 algs.global_code_path.insert(0, '/srv/jako/cd-code/')
 
+from . import utils
 
 class CdSession(object):
     netname = None
@@ -240,18 +241,28 @@ def cdrun(request, did, cdname):
     # Make the options form
     options = { }
     initial = { }
-    for name, value in cd.available_options().iteritems():
+    for name, d in cd.available_options().iteritems():
+        value = d['value']
         if isinstance(value, bool):
-            options[name] = forms.BooleanField(label=name, required=False)
+            options[name] = forms.BooleanField(label=name, required=False,
+                                               help_text=d['doc'])
             initial[name] = value
         elif isinstance(value, int):
-            options[name] = forms.IntegerField(label=name)
+            options[name] = forms.IntegerField(label=name,
+                                               help_text=d['doc'])
             initial[name] = value
         elif isinstance(value, float):
-            options[name] = forms.FloatField(label=name)
+            options[name] = forms.FloatField(label=name,
+                                             help_text=d['doc'])
+            initial[name] = value
+        elif d['type'] == 'list(float)':
+            print name, value
+            options[name] = utils.ListField(label=name, type=float,
+                                            help_text=d['doc'])
             initial[name] = value
         elif isinstance(value, str):
-            options[name] = forms.CharField(label=name)
+            options[name] = forms.CharField(label=name,
+                                            help_text=d['doc'])
             initial[name] = value
 
     OptionForm = type('OptionForm', (forms.Form, ), options)
@@ -262,7 +273,7 @@ def cdrun(request, did, cdname):
             cd.options_dict = optionform.cleaned_data
             run = True
         else:
-            optionform = OptionForm(initial=initial)
+            pass
     else:
         optionform = OptionForm(initial=initial)
 
