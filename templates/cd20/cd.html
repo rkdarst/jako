@@ -1,0 +1,55 @@
+
+Session data: {{ sessionitems }}<p>
+
+Your ID: {{ cd.id }}<p>
+
+<h1>Set network</h1>
+
+Current network: {{ cd.netname }}<p>
+
+<form enctype="multipart/form-data" action="" method="post">
+    {% csrf_token %}
+    {{ netform.as_p }}
+    <input type="submit" value="Update network file" />
+</form>
+
+
+
+<h1>Set CD method</h1>
+
+<form action="" method="post">
+    {% csrf_token %}
+    {{ cdnameform.as_p }}
+    <input type="submit" value="Update CD method" />
+</form>
+
+Selected method: {{ cd.cdname }}<p>
+<pre>
+{{cddoc}}
+</pre>
+
+
+
+<h1>Set CD method options</h1>
+
+<form action="" method="post">
+    {% csrf_token %}
+    {{ optionform.as_p }}
+    <input type="submit" value="Submit and run CD" />
+</form>
+
+
+
+<h1>Communities</h1>
+
+<pre>
+{{comm_str}}
+</pre>
+
+
+
+<h1>Log file from run</h1>
+{{stdout}}
+
+
+Session data: {{ sessionitems_end }}

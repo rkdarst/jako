@@ -1,0 +1,27 @@
+{% extends 'cd20/base.html' %}
+{% block title %}CD: {{netfile}} {{cd.name}} {%endblock%}
+{% block body %}
+
+<pre>
+{{ cddoc }}
+</pre>
+
+<h1>Set CD method options</h1>
+
+<form action="" method="post">
+    {% csrf_token %}
+    {{ optionform.as_p }}
+    <input type="submit" value="Submit and run CD" />
+</form>
+
+
+
+<h1>Communities</h1>
+
+<pre>
+{{comm_str}}
+</pre>
+
+
+{% endblock body %}
+

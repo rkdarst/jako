@@ -1,0 +1,50 @@
+{% extends "cd20/base.html" %}
+
+{% block title %}Dataset {{ ds.id }} ({{ netfile}}) {% endblock title%}
+
+{% block body %}
+
+<h1>Set network</h1>
+
+Current network: {{ netfile }}<p>
+{% if ds.nodes %}
+Nodes: {{ds.nodes}}, Edges: {{ds.edges}}, Average clustering coefficient: {{ds.clustc}},
+{% if ds.weighted == 1 %} All edges have explicit weights. {%endif%}
+{% if ds.weighted == 2 %} Some weighted edges {%endif%}
+{% if ds.weighted == 0 %} No weighted edges. {%endif%}
+{% endif %} 
+
+<form enctype="multipart/form-data" action="" method="post">
+    {% csrf_token %}
+    {{ netform.as_p }}
+    <input type="submit" value="Update network file" />
+</form>
+{{ netfile_upload_message }}
+
+<h1>CD Runs</h1>
+
+<h2>Existing runs</h2>
+<ul>
+{% for cd in cd_runs %}
+  <li><a href={% url cd20.views.cdrun ds.id cd.name %}>{{cd.name}}</a>
+  {%if cd.state == 'D'%} Done,
+    {{cd.runtime|floatformat}}s, {{cd.n_layers}} layers, {{cd.n_cmty}} communities per layer.
+  {%endif%}
+  {%if cd.state == 'R'%} Running for {{cd.rtime|timesince }}, {%endif%}
+  {%if cd.state == 'Q'%} Queued for {{cd.qtime|timesince }}, {%endif%}
+  {%if cd.state == 'X'%} Run died, {%endif%}
+
+  </li>
+{% endfor %}
+</ul>
+
+
+<h2>Add a new run:</h2>
+<form action="" method="post">
+    {% csrf_token %}
+    {{ cdnameform.as_p }}
+    <input type="submit" value="Update CD method" />
+</form>
+
+
+{% endblock body%}
