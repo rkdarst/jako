@@ -275,6 +275,8 @@ def cdrun(request, did, cdname):
         else:
             pass
     else:
+        if cd.options_dict:
+            initial.update(cd.options_dict)
         optionform = OptionForm(initial=initial)
 
     # Run CD
