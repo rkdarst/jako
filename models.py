@@ -143,7 +143,9 @@ class CD(models.Model):
 
     @property
     def options_dict(self):
-        return pickle.loads(str(self.options))
+        if self.options:
+            return pickle.loads(str(self.options))
+        return None
     @options_dict.setter
     def options_dict(self, value):
         self.options = pickle.dumps(value, protocol=0)
