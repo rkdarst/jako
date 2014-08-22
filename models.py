@@ -85,6 +85,7 @@ class Dataset(models.Model):
             g = read_any(self.netfile.name)
         else:
             g = getattr(nx, 'read_'+self.nettype)(self.netfile.name)
+        g = nx.relabel_nodes(g, dict((x, str(x)) for x in g.nodes_iter()))
         return g
     def study_network(self, g=None):
         """Analyze network and store some properties of it.
@@ -192,4 +193,5 @@ class CD(models.Model):
             cmtys = cmty.CommunityFile(fname)
             results.append(cmtys)
         return results
+
 

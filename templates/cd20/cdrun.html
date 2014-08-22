@@ -18,6 +18,21 @@
 
 <h1>Communities</h1>
 
+{% if cd.state == 'D' %}
+<ul>
+{% for cmtys in results %}
+  <li> Layer {{forloop.counter0}}, {{cmtys|length}} communities,
+  Download:
+
+    {% for ext, description in download_formats_ %}
+    <a href="{% url cd20.views.download_cmtys did=ds.id cdname=cdname layer=forloop.parentloop.counter0 format=ext %}">{{description}}</a>,
+    {% endfor %}
+</li>
+
+{% endfor %}
+</ul>
+{% endif %}
+
 <pre>
 {{comm_str}}
 </pre>

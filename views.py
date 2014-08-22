@@ -9,6 +9,7 @@ from django import forms
 import models
 from .models import Dataset, CD
 
+import networkx as nx
 from pcd.ioutil import read_any
 import pcd.support.algorithms as algs
 cdmethods = [name for (name, cda) in vars(algs).iteritems()
@@ -289,6 +290,7 @@ def cdrun(request, did, cdname):
     if cd.state == 'D':
         results = cd.get_results()
         comm_str = [ ]
+        download_formats_ = download_formats  # make local variable
         for cmtys in results:
             cmty = [ ]
             cmty.append('# Label: %s'%getattr(cmtys, 'label', ''))
@@ -301,3 +303,44 @@ def cdrun(request, did, cdname):
 
 
     return render(request, 'cd20/cdrun.html', locals())
+
+
+def cmtys(request):
+    pass
+
+
+download_formats = [
+    ('clusters', 'One line per community'),
+    ('clu', '(node cmty) pairs'),
+    ('gexf', 'GEXF graph with "cmty" attribute'),
+    ('gml', 'GML graph with "cmty" attribute'),
+    ]
+def download_cmtys(request, did, cdname, layer, format):
+    did = int(did)
+    ds = Dataset.objects.get(id=did)
+    cd = ds.cd_set.get(name=cdname)
+
+    cmtys = cd.get_results()[int(layer)]
+
+    data = [ ]
+    if format == 'clusters':
+        for cname, cnodes in cmtys.iteritems():
+            data.append(' '.join(str(x) for x in cnodes))
+        data = '\n'.join(data)
+    elif format == 'clu':
+        for cname, cnodes in cmtys.iteritems():
+            for node in cnodes:
+                data.append('%s %s'%(node, cname))
+        data = '\n'.join(data)
+    elif format == 'gexf':
+        g = ds.get_networkx()
+        for node, cs in cmtys.nodecmtys().iteritems():
+            g.node[node]['cmty'] = ' '.join(str(x) for x in cs)
+        data = nx.generate_gexf(g)
+    elif format == 'gml':
+        g = ds.get_networkx()
+        for node, cs in cmtys.nodecmtys().iteritems():
+            g.node[node]['cmty'] = ','.join(str(x) for x in cs)
+        data = nx.generate_gml(g)
+
+    return HttpResponse(content=data, content_type='text/plain', )
