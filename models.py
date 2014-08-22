@@ -64,6 +64,9 @@ class Dataset(models.Model):
         return dir
 
     def set_graph(self, f):
+        if self.netfile is not None:
+            self.netfile.delete()
+            self.save()
         self.netfile = f
         netfile_upload_message = "Successfully uploaded %s"%f.name
         self.save()
