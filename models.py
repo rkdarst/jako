@@ -1,3 +1,4 @@
+import datetime
 import itertools
 import os
 from os.path import join, exists
@@ -112,6 +113,8 @@ class CD(models.Model):
     mtime = models.DateTimeField("modification time", auto_now=True)
     atime = models.DateTimeField("access time", auto_now=True)
     qtime = models.DateTimeField("time entered queue", null=True)
+    rtime = models.DateTimeField("time begin running", null=True)
+    dtime = models.DateTimeField("time finished running", null=True)
 
     options = models.TextField("cd options")
     runtime = models.FloatField("cd options", null=True)
@@ -150,14 +153,18 @@ class CD(models.Model):
     def run(self):
         if not os.path.exists(self.basedir):
             os.mkdir(self.basedir)
-        self.state = 'R'
-        self.save()
-
-        start_time = time.time()
+        # Initialize
         cda = algs.get(self.name)
         g = self.ds.get_networkx()
+        self.state = 'R'
+        self.save()
+        # Do actual running
+        self.rtime = datetime.datetime.now()
+        start_time = time.time()
         cd = cda(g, dir=self.basedir, **self.options_dict)
+        self.dtime = datetime.datetime.now()
         self.runtime = time.time() - start_time
+        # Process results
         self.save_results(cd.results)
         self.state = 'D'
         self.save()
