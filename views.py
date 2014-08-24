@@ -16,7 +16,6 @@ cdmethods = [name for (name, cda) in vars(algs).iteritems()
              if isinstance(cda, type) and issubclass(cda, algs.CDMethod)
              and not name.startswith('_')]
 cdmethods.sort()
-algs.global_code_path.insert(0, '/srv/jako/cd-code/')
 
 from . import utils
 

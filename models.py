@@ -13,6 +13,7 @@ import networkx as nx
 import pcd.support.algorithms as algs
 import pcd.cmty as cmty
 from pcd.ioutil import read_any
+algs.global_code_path.insert(0, '/srv/jako/cd-code/')
 
 from . import utils
 from .config import *
