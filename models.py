@@ -57,6 +57,11 @@ class Dataset(models.Model):
     clustc = models.FloatField("clustering coef", null=True)
     weighted = models.IntegerField("clustering coef", null=True)
 
+    def __unicode__(self):
+        if self.netfile:
+            return u'<<Dataset(ds=%s, %s)>>'%(self.id, os.path.basename(self.netfile.name))
+        return u'<<Dataset(ds=%s)>>'%(self.id, )
+
     @property
     def basedir(self):
         id = self.id
@@ -150,6 +155,9 @@ class CD(models.Model):
     runtime = models.FloatField("cd options", null=True)
     n_layers = models.IntegerField("number of layers", null=True)
     n_cmty = models.TextField("number of nodes", null=True)
+
+    def __unicode__(self):
+        return u'<<CD(%s, id=%s, ds=%s, %s)>>'%(self.state, self.id, self.ds.id, self.name)
 
     @property
     def basedir(self):
