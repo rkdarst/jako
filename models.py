@@ -15,6 +15,7 @@ import pcd.cmty as cmty
 from pcd.ioutil import read_any
 
 from . import utils
+from .config import *
 
 # Create your models here.
 
@@ -66,17 +67,38 @@ class Dataset(models.Model):
             os.mkdir(dir)
         return dir
 
-    def set_graph(self, f):
-        if self.netfile is not None:
-            self.netfile.delete()
-            self.save()
+    # This function should be abstracted out later
+    def get_network_limits(self):
+        """Get size limits of uploaded networks."""
+        return dict(bytes=MAX_NETWORK_BYTES, nodes=MAX_NETWORK_NODES,
+                    edges=MAX_NETWORK_EDGES)
+    def set_network(self, f):
+        """User has uploaded a graph, save and sanity check it"""
+        limits = self.get_network_limits()
+        # Check size
+        if f.size > limits['bytes']:
+            netfile_upload_message = "Upload failed, network is too big"
+            return netfile_upload_message
+        # Do actual saving of network.
+        if self.netfile:
+            self.del_network()
         self.netfile = f
         netfile_upload_message = "Successfully uploaded %s"%f.name
         self.save()
+        # Make sure that network can be loaded
         try:
             g = self.get_networkx()
         except Exception as e:
-            netfile_upload_message = 'upload failed (%s, %s)'%(self.nettype, e)
+            self.del_network()
+            netfile_upload_message = 'Upload failed, network not openable (%s, %s)'%(self.nettype, e)
+            return netfile_upload_message
+        # Check nodes/edges limits...
+        if len(g) > limits['nodes']:
+            return 'Upload failed, too many nodes in network.'
+        if g.number_of_edges() > limits['edges']:
+            self.del_network()
+            return 'Upload failed, too many edges in network.'
+        # Run and save basic network statistics.
         self.study_network(g)
         return netfile_upload_message
 
@@ -87,6 +109,13 @@ class Dataset(models.Model):
             g = getattr(nx, 'read_'+self.nettype)(self.netfile.name)
         g = nx.relabel_nodes(g, dict((x, str(x)) for x in g.nodes_iter()))
         return g
+    def del_network(self):
+        self.netfile.delete()
+        self.netfile = None
+        self.nodes = None
+        self.edges = None
+        self.clustc = None
+        self.save()
     def study_network(self, g=None):
         """Analyze network and store some properties of it.
 

@@ -14,6 +14,11 @@ Nodes: {{ds.nodes}}, Edges: {{ds.edges}}, Average clustering coefficient: {{ds.c
 {% if ds.weighted == 0 %} No weighted edges. {%endif%}
 {% endif %} 
 
+Current network size limits:
+{{ds.get_network_limits.bytes|filesizeformat}} bytes,
+{{ds.get_network_limits.nodes}} nodes,
+{{ds.get_network_limits.edges}} edges.
+
 <form enctype="multipart/form-data" action="" method="post">
     {% csrf_token %}
     {{ netform.as_p }}

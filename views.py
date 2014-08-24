@@ -199,7 +199,7 @@ def dataset(request, id):
         if netform.is_valid():
             f = request.FILES['netfile']
             ds.nettype = netform.cleaned_data['nettype']
-            netfile_upload_message = ds.set_graph(f)
+            netfile_upload_message = ds.set_network(f)
             ds.save()
     else:
         netform = NetworkForm(initial={'nettype':ds.nettype})
