@@ -196,6 +196,13 @@ class CD(models.Model):
         return ''
 
     def run(self):
+        import queue
+        self.state = 'Q'
+        self.qtime = datetime.datetime.now()
+        self.save()
+        return queue.run(which=self)
+
+    def _run(self):
         if not os.path.exists(self.basedir):
             os.mkdir(self.basedir)
         # Initialize

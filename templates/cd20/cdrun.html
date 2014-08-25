@@ -18,6 +18,8 @@
 
 <h1>Communities</h1>
 
+Current community state: {{cd.state}}<p>
+
 {% if cd.state == 'D' %}
 <ul>
 {% for cmtys in results %}
@@ -31,10 +33,15 @@
       <li> <a href="{% url cd20.views.cmtys_viz did=ds.id cdname=cdname layer=forloop.counter0%}">Visualize</a> </li>
     </ul>
 </li>
-
 {% endfor %}
 </ul>
 {% endif %}
+
+{% if cd.state == 'Q' %}
+Community detection run is queued since {{cd.qtime}}
+{% endif %}
+
+
 
 <pre>
 {{comm_str}}
