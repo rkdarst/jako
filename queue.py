@@ -92,7 +92,13 @@ def runCD(cd):
     if pid == 0:
         # child process
         preexec()
-        cd._run()
+        try:
+            cd._run()
+        except:
+            type, value, traceback = sys.exc_info()
+            print "queue.py: printing exception"
+            #print type, value, traceback
+            os._exit(1)
         os._exit(0)  # exit after the fork
     # parent process
     _waited_pid, status = os.waitpid(pid, 0)
