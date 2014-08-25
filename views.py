@@ -1,22 +1,19 @@
 # Create your views here.
 
+import json
 import os.path
 
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django import forms
 
-import models
-from .models import Dataset, CD
-
 import networkx as nx
 from pcd.ioutil import read_any
 import pcd.support.algorithms as algs
-cdmethods = [name for (name, cda) in vars(algs).iteritems()
-             if isinstance(cda, type) and issubclass(cda, algs.CDMethod)
-             and not name.startswith('_')]
-cdmethods.sort()
 
+from .config import *
+from . import models
+from .models import Dataset, CD
 from . import utils
 
 class CdSession(object):
@@ -97,7 +94,7 @@ class NetworkForm(forms.Form):
 
 class CdNameForm(forms.Form):
     cdname = forms.ChoiceField(label='Method Name',
-                                  choices=[(None, '<select>')]+[(x, x) for x in cdmethods])
+                                  choices=[(None, '<select>')]+[(x, x) for x in CDMETHODS])
 
 def index(request):
     session = request.session
@@ -328,7 +325,6 @@ def cmtys_viz(request, did, cdname, layer, ext=None):
 
     print ext
     if ext == '.json':
-        import json
         g = ds.get_networkx()
         nodecmtys = cmtys.nodecmtys()
 

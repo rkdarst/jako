@@ -6,7 +6,7 @@ import time
 
 from django.db import transaction
 
-from .models import Dataset, CD
+from . import models
 
 QUEUE_LIMIT = 1
 LIMIT_SEC = 60
@@ -55,14 +55,14 @@ def run(which=None):
 
 def queue_full():
     """Return True if queue is full (no more runners should be launched)"""
-    if CD.objects.filter(state='R').count() < QUEUE_LIMIT:
+    if models.CD.objects.filter(state='R').count() < QUEUE_LIMIT:
         return False
     return True
 def queue_next():
     """Return the next object in the queue"""
     #CD.objects.filter(state='Q').order_by('qtime').first()  # django 1.6 feature
     try:
-        return CD.objects.filter(state='Q').order_by('qtime')[0]
+        return models.CD.objects.filter(state='Q').order_by('qtime')[0]
     except IndexError:
         return None
 def run_queue_command():

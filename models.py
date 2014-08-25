@@ -16,8 +16,8 @@ import pcd.cmty as cmty
 from pcd.ioutil import read_any
 algs.global_code_path.insert(0, '/srv/jako/cd-code/')
 
-from . import utils
 from .config import *
+from . import utils
 
 # Create your models here.
 
@@ -204,10 +204,10 @@ class CD(models.Model):
         return ''
 
     def run(self):
-        import queue
         self.state = 'Q'
         self.qtime = datetime.datetime.now()
         self.save()
+        from . import queue
         return queue.run(which=self)
 
     def _run(self):
