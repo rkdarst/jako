@@ -1,5 +1,6 @@
 import datetime
 import itertools
+import logging
 import os
 from os.path import join, exists
 import cPickle as pickle
@@ -18,6 +19,8 @@ algs.global_code_path.insert(0, '/srv/jako/cd-code/')
 
 from .config import *
 from . import utils
+
+logger = logging.getLogger(__name__)
 
 # Create your models here.
 
@@ -44,6 +47,8 @@ net_types = [
     ('pajek', 'Pajek'),
     ('yaml', 'YAML'),
     ]
+
+
 
 class Dataset(models.Model):
     id = models.AutoField(primary_key=True, default=new_ds_id)

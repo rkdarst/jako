@@ -1,6 +1,7 @@
 # Create your views here.
 
 import json
+import logging
 import os.path
 
 from django.http import HttpResponse
@@ -15,6 +16,8 @@ from .config import *
 from . import models
 from .models import Dataset, CD
 from . import utils
+
+logger = logging.getLogger(__name__)
 
 class CdSession(object):
     netname = None
@@ -145,7 +148,6 @@ def index(request):
         if request.method == 'POST':
             optionform = OptionForm(request.POST)
             if optionform.is_valid():
-                print optionform.cleaned_data
                 cd.set_options(cd.cdname, optionform.cleaned_data)
                 run = True
             else:
@@ -174,17 +176,19 @@ def index(request):
     context = locals()
     return render(request, 'cd20/cd.html', context)
 
-    #return HttpResponse("Hello, world. You're at the index.")
-
 
 
 def main(request):
     return render(request, 'cd20/main.html', locals())
 
+
+
 def new(request):
     ds = Dataset()
     ds.save()
     return redirect(dataset, ds.id)
+
+
 
 def dataset(request, id):
     id = int(id)
@@ -219,12 +223,8 @@ def dataset(request, id):
             return redirect(cdrun, ds.id, cdname)
     cdnameform = CdNameForm()
 
-    print cd_runs
-
-    #from fitz import interactnow
-
-
     return render(request, 'cd20/dataset.html', locals())
+
 
 
 def cdrun(request, did, cdname):
@@ -259,7 +259,6 @@ def cdrun(request, did, cdname):
                                              help_text=d['doc'])
             initial[name] = value
         elif d['type'] == 'list(float)':
-            print name, value
             options[name] = utils.ListField(label=name, type=float,
                                             help_text=d['doc'])
             initial[name] = value
@@ -272,7 +271,6 @@ def cdrun(request, did, cdname):
     if request.method == 'POST':
         optionform = OptionForm(request.POST)
         if optionform.is_valid():
-            print optionform.cleaned_data
             cd.options_dict = optionform.cleaned_data
             run = True
         else:
@@ -288,7 +286,6 @@ def cdrun(request, did, cdname):
         #results = data['results']
         #stdout = data['stdout']
 
-
     if cd.state == 'D':
         results = cd.get_results()
         download_formats_ = download_formats  # make local variable
@@ -303,13 +300,14 @@ def cdrun(request, did, cdname):
                 comm_str.append('\n\n\n')
             comm_str = '\n'.join(comm_str)
 
-
-
     return render(request, 'cd20/cdrun.html', locals())
+
 
 
 def cmtys(request):
     pass
+
+
 
 def cmtys_viz(request, did, cdname, layer, ext=None):
     """Interactively visualize communities.
@@ -323,7 +321,6 @@ def cmtys_viz(request, did, cdname, layer, ext=None):
 
     graphjsonname = 'viz.json'
 
-    print ext
     if ext == '.json':
         g = ds.get_networkx()
         nodecmtys = cmtys.nodecmtys()
@@ -341,11 +338,12 @@ def cmtys_viz(request, did, cdname, layer, ext=None):
             nodes.append(dict(name="%s (%s)"%(n, c), group=color))
         for a,b in g.edges_iter():
             links.append(dict(source=node_map[a], target=node_map[b], value=1))
-        print data
         data = json.dumps(data)
         return HttpResponse(content=data, content_type='text/plain', )
 
     return render(request, 'cd20/cmtys_viz.html', locals())
+
+
 
 download_formats = [
     ('txt', 'One line per community'),
@@ -365,7 +363,6 @@ def download_cmtys(request, did, cdname, layer, format):
     if fname_requested != fname:
         return redirect(download_cmtys, did=did, cdname=cdname, layer=layer,
                         format=fname)
-
 
     cmtys = cd.get_results()[int(layer)]
 
@@ -401,6 +398,7 @@ def download_cmtys(request, did, cdname, layer, format):
     return response
 
 
+
 def cmtys_stdout(request, did, cdname, ext=None):
     """Show raw standard output of CD runs.
     """
@@ -413,7 +411,5 @@ def cmtys_stdout(request, did, cdname, ext=None):
         if not fname.endswith('.stdout'):
             continue
         outputs.append((fname, open(os.path.join(cd.basedir, fname)).read()))
-    print outputs
-
 
     return render(request, 'cd20/cmtys_stdout.html', locals())

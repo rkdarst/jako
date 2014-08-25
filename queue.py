@@ -1,4 +1,5 @@
 import os
+import logging
 import resource
 import subprocess
 import sys
@@ -11,6 +12,8 @@ from . import models
 QUEUE_LIMIT = 1
 LIMIT_SEC = 60
 
+logger = logging.getLogger(__name__)
+
 def run(which=None):
     """Look through queue and run anything that needs to be"""
     while True:
@@ -19,14 +22,14 @@ def run(which=None):
             # Queue is full.  According to our semantics, we don't
             # need to poll or anyting.  After every job finishes, it
             # will start the next job.
-            print "queue.py: Queue is full"
+            logger.debug("queue.py: Queue is full")
             return False
 
         # Find the job that should be run next.
         next = queue_next()
         if next is None:
             # No objects left to run.
-            print "queue.py: No objects are queued"
+            logger.debug("queue.py: No objects are queued")
             return False
 
         if which:
@@ -35,19 +38,19 @@ def run(which=None):
             # Regardless, after this run, if we are at this point then
             # we have the ability to run something in the queue.
             # Spawn a child process to run it.
-            print "queue.py: Requested to run %s"%which
+            logger.debug("queue.py: Requested to run %s"%which)
             if which != next:
-                print "queue.py: Requested CD is not next in queue, spawning queuerunner"%which
+                logger.debug("queue.py: Requested CD is not next in queue, spawning queuerunner"%which)
                 os.spawnl(os.P_NOWAIT, *run_queue_command())
                 return False
 
             # Run `which` in current process and block for its completion.
-            print "queue.py: Running requested CD."%which
+            logger.debug("queue.py: Running requested CD."%which)
             ret = runCD(which)
-            print "queue.py: Done running requested CD."%which
+            logger.debug("queue.py: Done running requested CD."%which)
 
             # Done running the passed object.  Fork to start new queue runner, and return
-            print "queue.py: Spawning queuerunner."
+            logger.debug("queue.py: Spawning queuerunner.")
             os.spawnl(os.P_NOWAIT, *run_queue_command())
             return ret
 
@@ -76,7 +79,7 @@ def runCD(cd):
     """Run a single CD method and return.
 
     Use `run()` as the main entry point."""
-    print "runCD:", cd
+    logger.debug("runCD:", cd)
     def preexec():
         resource.setrlimit(resource.RLIMIT_CPU, (LIMIT_SEC, LIMIT_SEC))
 
@@ -96,8 +99,8 @@ def runCD(cd):
             cd._run()
         except:
             type, value, traceback = sys.exc_info()
-            print "queue.py: printing exception"
-            #print type, value, traceback
+            logger.error("queue.py: printing exception")
+            logger.error("%s %s %s"%(type, value, traceback))
             os._exit(1)
         os._exit(0)  # exit after the fork
     # parent process
@@ -105,7 +108,7 @@ def runCD(cd):
     signal = status % 256
     exitstatus = status // 256
 
-    print "runCD: done running", cd, _waited_pid, signal, exitstatus
+    logger.debug("runCD: done running", cd, _waited_pid, signal, exitstatus)
 
     # We must get updated values from the database since it has been
     # modefied in another process.
@@ -118,7 +121,7 @@ def runCD(cd):
         cd.state = 'X'
         cd.save()
         message = 'CD(%s) died, signal=%s, exitstatus=%s'%(cd.id, signal, exitstatus)
-        print message
+        #print message
         return False
 
 
