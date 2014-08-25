@@ -1,3 +1,22 @@
+{% extends "cd20/base.html" %}
+
+{% block title %}
+Jako: Online community detection portal
+{% endblock title %}
 
 
-<a href="{% url cd20.views.new %}">Create a new dataset</a>
+{% block body %}
+<p>Welcome to the online community detection (CD) portal.  This site
+  allows you to upload network datasets and run various community
+  detection methods on them to find structural clusters within the
+  data.</p>
+
+<p>Anyone can anonymously upload a dataset, run CD with different
+  options, do basic visualizations, and download the results.  There
+  are limits on network size and running time of CD methods.</p>
+
+<p>
+<a href="{% url cd20.views.new %}">Create a new dataset.</a>
+</p>
+
+{% endblock body %}

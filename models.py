@@ -181,8 +181,9 @@ class CD(models.Model):
             if name in set(('verbosity',)):
                 continue
             value = getattr(cda, name)
+            doc = getattr(cda, '_%s_doc'%name, "")+("  (default: %s)"%(value, ))
             options[name] = dict(value=value,
-                                 doc=getattr(cda, '_%s_doc'%name, None),
+                                 doc=doc,
                                  type=getattr(cda, '_%s_type'%name, None))
         return options
 

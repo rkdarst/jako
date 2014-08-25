@@ -6,25 +6,30 @@
 
 <h1>Set network</h1>
 
-Current network: {{ netfile }}<p>
+<p>Current network: {{ netfile }}.
 {% if ds.nodes %}
-Nodes: {{ds.nodes}}, Edges: {{ds.edges}}, Average clustering coefficient: {{ds.clustc}},
+This dataset has {{ds.nodes}} nodes, {{ds.edges}} edges, and an
+  average clustering coefficient of {{ds.clustc}}.
 {% if ds.weighted == 1 %} All edges have explicit weights. {%endif%}
-{% if ds.weighted == 2 %} Some weighted edges {%endif%}
-{% if ds.weighted == 0 %} No weighted edges. {%endif%}
-{% endif %} 
+{% if ds.weighted == 2 %} There are some weighted edges. {%endif%}
+{% if ds.weighted == 0 %} There are no weighted edges. {%endif%}
+{% endif %}
+</p>
 
-Current network size limits:
+<p>Current network size limits:
 {{ds.get_network_limits.bytes|filesizeformat}} bytes,
 {{ds.get_network_limits.nodes}} nodes,
-{{ds.get_network_limits.edges}} edges.
+{{ds.get_network_limits.edges}} edges.</p>
 
-<form enctype="multipart/form-data" action="" method="post">
-    {% csrf_token %}
-    {{ netform.as_p }}
-    <input type="submit" value="Update network file" />
+<form enctype="multipart/form-data" method="post">
+  {% csrf_token %}
+  <table>
+    {{ netform.as_table }}
+  </table>
+  <input type="submit" value="Update network file"/>
+  {{ netfile_upload_message }}
 </form>
-{{ netfile_upload_message }}
+
 
 <h1>CD Runs</h1>
 
@@ -35,21 +40,27 @@ Current network size limits:
   {%if cd.state == 'D'%} Done,
     {{cd.runtime|floatformat}}s, {{cd.n_layers}} layers, [{{cd.n_cmty}}] communities per layer.
   {%endif%}
-  {%if cd.state == 'R'%} Running for {{cd.rtime|timesince }}, {%endif%}
-  {%if cd.state == 'Q'%} Queued for {{cd.qtime|timesince }}, {%endif%}
-  {%if cd.state == 'X'%} Run died, {%endif%}
+  {%if cd.state == 'R'%} Running for {{cd.rtime|timesince }}. {%endif%}
+  {%if cd.state == 'Q'%} Queued for {{cd.qtime|timesince }}. {%endif%}
+  {%if cd.state == 'X'%} Run died at {{cd.dtime|timesince }}. {%endif%}
 
+  </li>
+{% empty %}
+  <li>
+    There are currently no CD runs.
   </li>
 {% endfor %}
 </ul>
 
 
 <h2>Add a new run:</h2>
-<form action="" method="post">
-    {% csrf_token %}
-    {{ cdnameform.as_p }}
-    <input type="submit" value="Update CD method" />
-</form>
 
+<form method="post">
+  {% csrf_token %}
+  <table>
+    {{ cdnameform.as_table }}
+  </table>
+  <input type="submit" value="Add CD method" />
+</form>
 
 {% endblock body%}

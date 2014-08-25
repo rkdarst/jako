@@ -8,22 +8,31 @@
 
 <h1>Set CD method options</h1>
 
-<form action="" method="post">
-    {% csrf_token %}
-    {{ optionform.as_p }}
-    <input type="submit" value="Submit and run CD" />
+<p>This section presents possible options for this CD method.  The
+  initial values are the default options, or the options for the last
+  CD run.  Submitting will add this run to the queue, and if possible
+  begin running right away.</p>
+
+<form method="post">
+  {% csrf_token %}
+  <table>
+    {{ optionform.as_table }}
+  </table>
+  <input type="submit" value="Submit and run CD" />
 </form>
 
 
 
 <h1>Communities</h1>
 
-Current community state: {{cd.state}}<p>
+<p>Here, you can visualize and download your community detection results.</p>
+
+<p>Current community state: {{cd.state}}</p>
 
 {% if cd.state == 'D' %}
 <ul>
 {% for cmtys in results %}
-  <li> Layer {{forloop.counter0}}, {{cmtys|length}} communities.
+  <li> Layer {{forloop.counter0}}, <i>{{cmtys.label}}</i> {{cmtys|length}} communities.
     <ul>
       <li> Download:
     {% for ext, description in download_formats_ %}
@@ -40,12 +49,23 @@ Current community state: {{cd.state}}<p>
 {% if cd.state == 'Q' %}
 Community detection run is queued since {{cd.qtime}}
 {% endif %}
+{% if cd.state == 'X' %}
+Your community detection run has died somehow.  If this problem
+persists, please contact the site admin.
+{% endif %}
 
 
+<h2>Community listing</h2>
+{% if cd.state != 'D' %}<p>Your community detection is not completed
+  so nothing is available here yet.</p>{% endif%}
 
+{% if comm_str %}
 <pre>
 {{comm_str}}
 </pre>
+{% elif cd.state == 'D' %}
+<p>Your network has too many nodes so results are not printed inline here.</p>
+{% endif %}
 
 
 {% endblock body %}

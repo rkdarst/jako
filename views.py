@@ -89,13 +89,15 @@ def cd_get_doc(cda):
 
 class NetworkForm(forms.Form):
     netfile = forms.FileField(label="Network file",
-                              help_text="Select network file to upload or replace existing one.")
+                              help_text="Select network file to upload or replace existing one.  "
+                              "If the new network does not validate, you may lose the old one.")
     nettype = forms.ChoiceField(label="Network type", choices=models.net_types,
-                                help_text="Auto recommended.  Other types are as parsed by networkx.")
+                                help_text="Auto recommended.  Other types are as parsed by <i>read_*</i> "
+                                '<a href="http://networkx.github.io/documentation/networkx-1.9/reference/readwrite.html">functions</a> in networkx.')
 
 class CdNameForm(forms.Form):
     cdname = forms.ChoiceField(label='Method Name',
-                                  choices=[(None, '')]+[(x, x) for x in cdmethods])
+                                  choices=[(None, '<select>')]+[(x, x) for x in cdmethods])
 
 def index(request):
     session = request.session
@@ -207,7 +209,8 @@ def dataset(request, id):
     cd_runs = ds.cd_set.all()
     if request.method == 'POST':
         cdnameform = CdNameForm(request.POST)
-        if cdnameform.is_valid() and cdnameform.cleaned_data['cdname']:
+        if cdnameform.is_valid() and cdnameform.cleaned_data['cdname'] \
+               and cdnameform.cleaned_data['cdname']!=u'None':
             cdname = cdnameform.cleaned_data['cdname']
             # Return existing CD run if it exists
             run_cd = ds.cd_set.filter(name=cdname)
@@ -291,16 +294,17 @@ def cdrun(request, did, cdname):
 
     if cd.state == 'D':
         results = cd.get_results()
-        comm_str = [ ]
         download_formats_ = download_formats  # make local variable
-        for cmtys in results:
-            cmty = [ ]
-            cmty.append('# Label: %s'%getattr(cmtys, 'label', ''))
-            for cname, cnodes in cmtys.iteritems():
-                cmty.append(' '.join(str(n) for n in cnodes))
-            comm_str.append('\n'.join(cmty))
-            comm_str.append('\n\n\n')
-        comm_str = '\n'.join(comm_str)
+        if cd.ds.nodes < 500:
+            comm_str = [ ]
+            for cmtys in results:
+                cmty = [ ]
+                cmty.append('# Label: %s'%getattr(cmtys, 'label', ''))
+                for cname, cnodes in cmtys.iteritems():
+                    cmty.append(' '.join(str(n) for n in cnodes))
+                comm_str.append('\n'.join(cmty))
+                comm_str.append('\n\n\n')
+            comm_str = '\n'.join(comm_str)
 
 
 
