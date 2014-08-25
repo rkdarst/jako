@@ -51,7 +51,8 @@ def run(which=None):
 
             # Done running the passed object.  Fork to start new queue runner, and return
             logger.debug("queue.py: Spawning queuerunner.")
-            os.spawnl(os.P_NOWAIT, *run_queue_command())
+            if not queue_empty():
+                os.spawnl(os.P_NOWAIT, *run_queue_command())
             return ret
 
         runCD(next)
@@ -61,6 +62,11 @@ def queue_full():
     if models.CD.objects.filter(state='R').count() < QUEUE_LIMIT:
         return False
     return True
+def queue_empty():
+    """Return True if queue is full (no more runners should be launched)"""
+    if models.CD.objects.filter(state='R').exists():
+        return True
+    return False
 def queue_next():
     """Return the next object in the queue"""
     #CD.objects.filter(state='Q').order_by('qtime').first()  # django 1.6 feature
@@ -98,9 +104,12 @@ def runCD(cd):
         try:
             cd._run()
         except:
-            type, value, traceback = sys.exc_info()
+            type, value, tb = sys.exc_info()
+            import traceback
             logger.error("queue.py: printing exception")
-            logger.error("%s %s %s"%(type, value, traceback))
+            logger.error("%s"%type)
+            logger.error("%s"%value)
+            logger.error("\n".join(traceback.format_tb(tb)))
             os._exit(1)
         os._exit(0)  # exit after the fork
     # parent process
