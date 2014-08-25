@@ -101,10 +101,12 @@ def runCD(cd):
 
     print "runCD: done running", cd, _waited_pid, signal, exitstatus
 
+    # We must get updated values from the database since it has been
+    # modefied in another process.
+    cd = models.CD.objects.get(id=cd.id)
     if exitstatus == 0:
         cd.state = 'D'
         cd.save()
-        time.sleep(2)
         return True
     else:
         cd.state = 'X'
