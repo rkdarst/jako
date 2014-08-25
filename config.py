@@ -1,3 +1,6 @@
+ROOTDIR = '/mnt/data1/srv/jako/tmp/'
+
+
 MAX_NETWORK_BYTES =  512 * 2**10  # 64 KiB
 MAX_NETWORK_NODES = 1000
 MAX_NETWORK_EDGES = 10000
@@ -12,3 +15,4 @@ CDMETHODS = set(cda.name() for (name, cda) in vars(algs).iteritems()
 CDMETHODS = sorted(CDMETHODS)
 
 del algs
+

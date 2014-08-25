@@ -24,7 +24,6 @@ logger = logging.getLogger(__name__)
 
 # Create your models here.
 
-rootdir = '/mnt/data1/srv/jako/tmp/'
 def netfile_upload_to(instance, filename):
     path = join(instance.basedir, filename)
     return path
@@ -77,7 +76,7 @@ class Dataset(models.Model):
         id = self.id
         if id is None:
             raise Exception("no ID")
-        dir = join(rootdir, str(id))
+        dir = join(ROOTDIR, str(id))
         if not exists(dir):
             os.mkdir(dir)
         return dir
