@@ -68,5 +68,11 @@ persists, please contact the site admin.
 {% endif %}
 
 
+<h2>Raw output</h2>
+<p>You are encouraged to check the <a href="{% url cd20.views.cmtys_stdout did=ds.id cdname=cd.name %}">
+raw output</a> of the CD to verify that options used are correct (first
+line) and that there are no other errors.</p>
+
+
 {% endblock body %}
 

@@ -382,3 +382,21 @@ def download_cmtys(request, did, cdname, layer, format):
         data = nx.generate_gml(g)
 
     return HttpResponse(content=data, content_type='text/plain', )
+
+
+def cmtys_stdout(request, did, cdname, ext=None):
+    """Show raw standard output of CD runs.
+    """
+    did = int(did)
+    ds = Dataset.objects.get(id=did)
+    cd = ds.cd_set.get(name=cdname)
+
+    outputs = [ ]
+    for fname in os.listdir(cd.basedir):
+        if not fname.endswith('.stdout'):
+            continue
+        outputs.append((fname, open(os.path.join(cd.basedir, fname)).read()))
+    print outputs
+
+
+    return render(request, 'cd20/cmtys_stdout.html', locals())
