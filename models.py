@@ -4,6 +4,7 @@ import os
 from os.path import join, exists
 import cPickle as pickle
 import random
+import shutil
 import time
 
 from django.db import models
@@ -62,6 +63,9 @@ class Dataset(models.Model):
         if self.netfile:
             return u'<<Dataset(ds=%s, %s)>>'%(self.id, os.path.basename(self.netfile.name))
         return u'<<Dataset(ds=%s)>>'%(self.id, )
+    def delete(self):
+        shutil.rmtree(self.basedir)
+        super(CD, self).delete()
 
     @property
     def basedir(self):
@@ -159,6 +163,9 @@ class CD(models.Model):
 
     def __unicode__(self):
         return u'<<CD(%s, id=%s, ds=%s, %s)>>'%(self.state, self.id, self.ds.id, self.name)
+    def delete(self):
+        shutil.rmtree(self.basedir)
+        super(CD, self).delete()
 
     @property
     def basedir(self):
