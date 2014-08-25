@@ -193,8 +193,6 @@ def new(request):
 def dataset(request, id):
     id = int(id)
     ds = Dataset.objects.get(id=id)
-    if ds.netfile:
-        netfile = os.path.basename(ds.netfile.name)
 
     if request.method == 'POST':
         netform = NetworkForm(request.POST, request.FILES)

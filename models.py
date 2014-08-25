@@ -115,8 +115,14 @@ class Dataset(models.Model):
         # Run and save basic network statistics.
         self.study_network(g)
         return netfile_upload_message
+    def netfile_name(self):
+        if not self.netfile:
+            return None
+        return os.path.basename(self.netfile.name)
 
     def get_networkx(self):
+        if not self.netfile:
+            raise ValueError("No network has been given yet.")
         if self.nettype == 'auto':
             g = read_any(self.netfile.name)
         else:

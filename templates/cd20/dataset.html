@@ -6,7 +6,7 @@
 
 <h1>Set network</h1>
 
-<p>Current network: {{ netfile }}.
+<p>Current network: {{ ds.netfile_name }}.
 {% if ds.nodes %}
 This dataset has {{ds.nodes}} nodes, {{ds.edges}} edges, and an
   average clustering coefficient of {{ds.clustc}}.
