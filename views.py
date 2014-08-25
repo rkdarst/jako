@@ -348,7 +348,7 @@ def cmtys_viz(request, did, cdname, layer, ext=None):
     return render(request, 'cd20/cmtys_viz.html', locals())
 
 download_formats = [
-    ('clusters', 'One line per community'),
+    ('txt', 'One line per community'),
     ('clu', '(node cmty) pairs'),
     ('gexf', 'GEXF graph with "cmty" attribute'),
     ('gml', 'GML graph with "cmty" attribute'),
@@ -358,10 +358,21 @@ def download_cmtys(request, did, cdname, layer, format):
     ds = Dataset.objects.get(id=did)
     cd = ds.cd_set.get(name=cdname)
 
+    fname_requested = format
+    format = format.rsplit('.')[-1]
+
+    fname = '%s-%s%s.%s'%(os.path.basename(ds.netfile.name), cdname, layer, format)
+    if fname_requested != fname:
+        return redirect(download_cmtys, did=did, cdname=cdname, layer=layer,
+                        format=fname)
+
+
     cmtys = cd.get_results()[int(layer)]
 
     data = [ ]
-    if format == 'clusters':
+    content_type = 'text/plain'
+    force_download = False
+    if format == 'txt':
         for cname, cnodes in cmtys.iteritems():
             data.append(' '.join(str(x) for x in cnodes))
         data = '\n'.join(data)
@@ -375,13 +386,19 @@ def download_cmtys(request, did, cdname, layer, format):
         for node, cs in cmtys.nodecmtys().iteritems():
             g.node[node]['cmty'] = ' '.join(str(x) for x in cs)
         data = nx.generate_gexf(g)
+        data = '\n'.join(data)
     elif format == 'gml':
         g = ds.get_networkx()
         for node, cs in cmtys.nodecmtys().iteritems():
             g.node[node]['cmty'] = ','.join(str(x) for x in cs)
         data = nx.generate_gml(g)
+        data = '\n'.join(data)
 
-    return HttpResponse(content=data, content_type='text/plain', )
+    response = HttpResponse(content=data, content_type=content_type, )
+    # If the data size is too big, force a download instead of viewing as text.
+    if force_download or len(data) > 50 * 2**10:
+        response['Content-Disposition'] = 'attachment; filename=%s'%fname
+    return response
 
 
 def cmtys_stdout(request, did, cdname, ext=None):
