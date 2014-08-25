@@ -164,8 +164,11 @@ class CD(models.Model):
     def __unicode__(self):
         return u'<<CD(%s, id=%s, ds=%s, %s)>>'%(self.state, self.id, self.ds.id, self.name)
     def delete(self):
-        shutil.rmtree(self.basedir)
+        self.clean_dir()
         super(CD, self).delete()
+    def clean_dir(self):
+        if os.path.isdir(self.basedir):
+            shutil.rmtree(self.basedir)
 
     @property
     def basedir(self):
@@ -211,6 +214,7 @@ class CD(models.Model):
         return queue.run(which=self)
 
     def _run(self):
+        self.clean_dir()
         if not os.path.exists(self.basedir):
             os.mkdir(self.basedir)
         # Initialize
