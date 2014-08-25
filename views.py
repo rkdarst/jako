@@ -230,7 +230,10 @@ def dataset(request, id):
 def cdrun(request, did, cdname):
     did = int(did)
     ds = Dataset.objects.get(id=did)
-    cd = ds.cd_set.get(name=cdname)
+    try:
+        cd = ds.cd_set.get(name=cdname)
+    except CD.DoesNotExist:
+        return HttpResponse("CD run does not exist", status=404)
     if ds.netfile:
         netfile = os.path.basename(ds.netfile.name)
 
