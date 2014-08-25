@@ -332,10 +332,10 @@ def cmtys_viz(request, did, cdname, layer, ext=None):
         node_map = dict((n, i) for i, n in enumerate(g.nodes_iter()))
 
         for n in g.nodes_iter():
-            c = nodecmtys[n]
+            c = nodecmtys.get(n, ('None',))
             c = ','.join(str(x) for x in c)
             color = c
-            nodes.append(dict(name=n, group=color))
+            nodes.append(dict(name="%s (%s)"%(n, c), group=color))
         for a,b in g.edges_iter():
             links.append(dict(source=node_map[a], target=node_map[b], value=1))
         print data
