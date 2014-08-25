@@ -230,7 +230,7 @@ class CD(models.Model):
         # Do actual running
         self.rtime = datetime.datetime.now()
         start_time = time.time()
-        cd = cda(g, dir=self.basedir, **self.options_dict)
+        cd = cda(g, dir=self.basedir, verbosity=-10, **self.options_dict)
         self.dtime = datetime.datetime.now()
         self.runtime = time.time() - start_time
         # Process results
