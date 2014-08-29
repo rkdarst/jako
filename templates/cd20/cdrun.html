@@ -1,12 +1,13 @@
 {% extends 'cd20/base.html' %}
 {% block title %}CD: {{netfile}} {{cd.name}} {%endblock%}
+{% block pagetitle %}CD: {{netfile}} {{cd.name}} {%endblock%}
 {% block body %}
 
 <pre>
 {{ cddoc }}
 </pre>
 
-<h1>Set CD method options</h1>
+<h2>Set CD method options</h2>
 
 <p>This section presents possible options for this CD method.  The
   initial values are the default options, or the options for the last
@@ -23,7 +24,7 @@
 
 
 
-<h1>Communities</h1>
+<h2>Communities</h2>
 
 <p>Here, you can visualize and download your community detection results.</p>
 
@@ -55,7 +56,7 @@ persists, please contact the site admin.
 {% endif %}
 
 
-<h2>Community listing</h2>
+<h3>Community listing</h3>
 {% if cd.state != 'D' %}<p>Your community detection is not completed
   so nothing is available here yet.</p>{% endif%}
 

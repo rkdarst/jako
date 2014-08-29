@@ -1,10 +1,10 @@
 {% extends "cd20/base.html" %}
 
-{% block title %}Dataset {{ ds.id }} ({{ netfile}}) {% endblock title%}
+{% block title %}Dataset {{ ds.id }} ({{ ds.netfile_name}}) {% endblock title%}
+
+{% block pagetitle %}Dataset {{ ds.id }} ({{ ds.netfile_name}}) {% endblock pagetitle%}
 
 {% block body %}
-
-<h1>Set network</h1>
 
 <p>Current network: {{ ds.netfile_name }}.
 {% if ds.nodes %}
@@ -15,6 +15,8 @@ This dataset has {{ds.nodes}} nodes, {{ds.edges}} edges, and an
 {% if ds.weighted == 0 %} There are no weighted edges. {%endif%}
 {% endif %}
 </p>
+
+<h2>Set network</h2>
 
 <p>Current network size limits:
 {{ds.get_network_limits.bytes|filesizeformat}} bytes,
@@ -31,9 +33,9 @@ This dataset has {{ds.nodes}} nodes, {{ds.edges}} edges, and an
 </form>
 
 
-<h1>CD Runs</h1>
+<h2>CD Runs</h2>
 
-<h2>Existing runs</h2>
+<h3>Existing runs</h3>
 <ul>
 {% for cd in cd_runs %}
   <li><a href={% url cd20.views.cdrun ds.id cd.name %}>{{cd.name}}</a>
@@ -53,7 +55,7 @@ This dataset has {{ds.nodes}} nodes, {{ds.edges}} edges, and an
 </ul>
 
 
-<h2>Add a new run:</h2>
+<h3>Add a new run:</h3>
 
 <form method="post">
   {% csrf_token %}

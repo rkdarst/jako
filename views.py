@@ -6,6 +6,7 @@ import os.path
 
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
+from django.core.urlresolvers import reverse
 from django import forms
 
 import networkx as nx
@@ -193,6 +194,8 @@ def new(request):
 def dataset(request, id):
     id = int(id)
     ds = Dataset.objects.get(id=id)
+    breadcrumbs = ((reverse(main), 'Home'),
+                   (None, 'Dataset %s'%id))
 
     if request.method == 'POST':
         netform = NetworkForm(request.POST, request.FILES)
@@ -234,6 +237,10 @@ def cdrun(request, did, cdname):
         return HttpResponse("CD run does not exist", status=404)
     if ds.netfile:
         netfile = os.path.basename(ds.netfile.name)
+    breadcrumbs = ((reverse(main), 'Home'),
+                   (reverse(dataset, args=(did, )), 'Dataset %s'%did),
+                   (None, cdname),
+                   )
 
     cddoc = cd.get_cddoc()
 
@@ -315,8 +322,13 @@ def cmtys_viz(request, did, cdname, layer, ext=None):
     did = int(did)
     ds = Dataset.objects.get(id=did)
     cd = ds.cd_set.get(name=cdname)
-    cmtys = cd.get_results()[int(layer)]
+    breadcrumbs = ((reverse(main), 'Home'),
+                   (reverse(dataset, args=(did, )), 'Dataset %s'%did),
+                   (reverse(cdrun, args=(did, cdname)), cdname),
+                   (None, "Visualize")
+                   )
 
+    cmtys = cd.get_results()[int(layer)]
     graphjsonname = 'viz.json'
 
     if ext == '.json':
@@ -403,6 +415,11 @@ def cmtys_stdout(request, did, cdname, ext=None):
     did = int(did)
     ds = Dataset.objects.get(id=did)
     cd = ds.cd_set.get(name=cdname)
+    breadcrumbs = ((reverse(main), 'Home'),
+                   (reverse(dataset, args=(did, )), 'Dataset %s'%did),
+                   (reverse(cdrun, args=(did, cdname)), cdname),
+                   (None, "Raw output")
+                   )
 
     outputs = [ ]
     for fname in os.listdir(cd.basedir):

@@ -1,8 +1,12 @@
 {% extends "cd20/base.html" %}
 
 {% block title %}
-Jako: Online community detection portal
+Jako CD
 {% endblock title %}
+
+{% block pagetitle %}
+Jako: An online community detection service
+{% endblock pagetitle %}
 
 
 {% block body %}
@@ -16,7 +20,10 @@ Jako: Online community detection portal
   are limits on network size and running time of CD methods.</p>
 
 <p>
-<a href="{% url cd20.views.new %}">Create a new dataset.</a>
+<form action="{% url cd20.views.new %}" method="post">
+  {% csrf_token %}
+<input type="submit" value="Create a new dataset"/>
+</form>
 </p>
 
 {% endblock body %}

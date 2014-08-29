@@ -1,15 +1,16 @@
 {% extends 'cd20/base.html' %}
 {% block title %}Jako - stdout: {{netfile}} {{cd.name}} {%endblock%}
+{% block pagetitle %}{{cd.name}} raw output {%endblock%}
 {% block body %}
 
 <p>The following files contain standard output and standard error from
 the CD run.  The first line lists raw arguments, then object data,
 then some meta information.  Then, you see the actual standard output
 and standard error streams combined.  This information is technical
-and not necessarily generally useful.</p>
+and requires detailed knowledge of the program operation.</p>
 
 {% for name in outputs %}
-<h1>{{name.0}}</h1>
+<h2>{{name.0}}</h2>
 
 <pre>
 {{name.1}}

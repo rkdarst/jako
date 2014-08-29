@@ -1,4 +1,7 @@
 <!DOCTYPE html>
+<head>
+<title>{{cdname}} visualization, dataset {{did}}</title>
+</head>
 <meta charset="utf-8">
 <style>
 
@@ -14,6 +17,23 @@
 
 </style>
 <body>
+
+<!-- breadcrumbs -->
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
+{% if breadcrumbs %}
+<ol class="breadcrumb">
+  {% for link, name in breadcrumbs %}
+    {% if not forloop.last %}
+      <li><a href="{{ link }}">{{name}}</a></li>
+    {% else %}
+      <li class="active">{{name}}</li>
+    {% endif %}
+  {% endfor %}
+</ol>
+{% endif %}
+<!-- end breadcrumbs -->
+
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script>
 

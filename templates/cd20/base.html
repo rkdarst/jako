@@ -3,12 +3,51 @@
 <head>
     <title>{% block title %}{% endblock title %}</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
+    <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>-->
     {% block head %}{% endblock head %}
 </head>
 
-<body>
+<body style="padding-bottom: 70px;">
+  <div class="navbar navbar-inverse navbar-static-top" role="navigation">
+    <div class="container">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="{% url cd20.views.main %}">Jako CD</a>
+      </div>
+      <div class="nav nav-pills pull-right">
+        <ul class="nav navbar-nav">
+          <li><a href="#">About</a></li>
+          <li><a href="#">Contact</a></li>
+          <li><a href="#">Thanks</a></li>
+        </ul>
+      </div><!--/.nav-collapse -->
+    </div>
+  </div>
+
+
+
+<div class="container">
+  {% if breadcrumbs %}
+  <ol class="breadcrumb">
+    {% for link, name in breadcrumbs %}
+      {% if not forloop.last %}
+        <li><a href="{{ link }}">{{name}}</a></li>
+      {% else %}
+        <li class="active">{{name}}</li>
+      {% endif %}
+    {% endfor %}
+  </ol>
+  {% endif %}
+<h1>{%block pagetitle%}{%endblock%}</h1>
+<!--<p class="lead"></p>-->
+<!--<div class="page-header">
+</div>-->
+
 {% block body%}
 {% endblock body%}
+</div>
 </body>
 
 </html>
