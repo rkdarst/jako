@@ -187,17 +187,15 @@ class CD(models.Model):
     def available_options(self):
         cda = algs.get(self.name)
         options = { }
-        initial = { }
-        for name in dir(cda):
+
+        options.update(utils.parse_cda_docstring(cda))
+        #options.update(utils.cda_find_options(cda))
+
+        for name, data in options.items():  # copy so we can delete
             if name.startswith('_'):
-                continue
-            if name in set(('verbosity',)):
-                continue
-            value = getattr(cda, name)
-            doc = getattr(cda, '_%s_doc'%name, "")+("  (default: %s)"%(value, ))
-            options[name] = dict(value=value,
-                                 doc=doc,
-                                 type=getattr(cda, '_%s_type'%name, None))
+                del options[name]
+            if name in utils.excluded_options:
+                del options[name]
         return options
 
     @property
@@ -211,10 +209,7 @@ class CD(models.Model):
 
     def get_cddoc(self):
         cda = algs.get(self.name)
-        for bc in cda.__mro__:
-            if bc.__doc__ is not None:
-                return utils.dedent(bc.__doc__)
-        return ''
+        return utils.dedent(utils.cda_get_doc(cda))
 
     def run(self):
         self.state = 'Q'

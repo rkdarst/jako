@@ -81,12 +81,6 @@ class CdSession(object):
                 return bc.__doc__
         return ''
 
-def cd_get_doc(cda):
-    for bc in cda.__mro__:
-        if bc.__doc__ is not None:
-            return bc.__doc__
-    return ''
-
 
 class NetworkForm(forms.Form):
     netfile = forms.FileField(label="Network file",
@@ -95,6 +89,18 @@ class NetworkForm(forms.Form):
     nettype = forms.ChoiceField(label="Network type", choices=models.net_types,
                                 help_text="Auto recommended.  Other types are as parsed by <i>read_*</i> "
                                 '<a href="http://networkx.github.io/documentation/networkx-1.9/reference/readwrite.html">functions</a> in networkx.')
+
+import types
+def as_table2(self):
+    return self._html_output(
+        #normal_row = u'<tr%(html_class_attr)s><th>%(label)s</th><td>%(errors)s%(field)s</td></tr><tr><td style="padding-bottom:25px;" colspan="2">%(help_text)s</td></tr>',
+        normal_row = u'<tr%(html_class_attr)s"><th>%(label)s</th><td>%(errors)s%(field)s</td><td>%(help_text)s</td></tr>',
+        error_row = u'<tr><td colspan="3">%s</td></tr>',
+        row_ender = u'</td></tr>',
+        help_text_html = u'<span class="helptext">%s</span>',
+        errors_on_separate_row = False)
+import types
+forms.BaseForm.as_table = types.MethodType(as_table2, None, forms.BaseForm)
 
 class CdNameForm(forms.Form):
     cdname = forms.ChoiceField(label='Method Name',
@@ -248,29 +254,48 @@ def cdrun(request, did, cdname):
 
     # Make the options form
     options = { }
-    initial = { }
+    initials = { }
     for name, d in cd.available_options().iteritems():
-        value = d['value']
-        if isinstance(value, bool):
-            options[name] = forms.BooleanField(label=name, required=False,
-                                               help_text=d['doc'])
-            initial[name] = value
-        elif isinstance(value, int):
-            options[name] = forms.IntegerField(label=name,
-                                               help_text=d['doc'])
-            initial[name] = value
-        elif isinstance(value, float):
-            options[name] = forms.FloatField(label=name,
-                                             help_text=d['doc'])
-            initial[name] = value
+        initial = d['initial']
+        if d['type'] == 'int, optional':
+            options[name] = forms.IntegerField(label=name, help_text=d['doc'], required=False)
+            initials[name] = initial
+        elif d['type'] == 'int':
+            options[name] = forms.IntegerField(label=name, help_text=d['doc'])
+            initials[name] = initial
+
+        elif d['type'] == 'float, optional':
+            options[name] = forms.FloatField(label=name, help_text=d['doc'], required=False)
+            initials[name] = initial
+        elif d['type'] == 'float':
+            options[name] = forms.FloatField(label=name, help_text=d['doc'])
+            initials[name] = initial
+
+        elif d['type'] == 'bool':
+            options[name] = forms.BooleanField(label=name, help_text=d['doc'])
+            initials[name] = initial
+
+
         elif d['type'] == 'list(float)':
             options[name] = utils.ListField(label=name, type=float,
                                             help_text=d['doc'])
-            initial[name] = value
-        elif isinstance(value, str):
+            initials[name] = initial
+        elif isinstance(initial, bool):
+            options[name] = forms.BooleanField(label=name, required=False,
+                                               help_text=d['doc'])
+            initials[name] = initial
+        elif isinstance(initial, int):
+            options[name] = forms.IntegerField(label=name,
+                                               help_text=d['doc'])
+            initials[name] = initial
+        elif isinstance(initial, float):
+            options[name] = forms.FloatField(label=name,
+                                             help_text=d['doc'])
+            initials[name] = initial
+        elif isinstance(initial, str):
             options[name] = forms.CharField(label=name,
                                             help_text=d['doc'])
-            initial[name] = value
+            initials[name] = initial
 
     OptionForm = type('OptionForm', (forms.Form, ), options)
     if request.method == 'POST':
@@ -282,8 +307,8 @@ def cdrun(request, did, cdname):
             pass
     else:
         if cd.options_dict:
-            initial.update(cd.options_dict)
-        optionform = OptionForm(initial=initial)
+            initials.update(cd.options_dict)
+        optionform = OptionForm(initial=initials)
 
     # Run CD
     if run:
