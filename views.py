@@ -191,9 +191,11 @@ def main(request):
 
 
 def new(request):
-    ds = Dataset()
-    ds.save()
-    return redirect(dataset, ds.id)
+    if request.method == "POST":
+        ds = Dataset()
+        ds.save()
+        return redirect(dataset, ds.id)
+    return redirect(main)
 
 
 
