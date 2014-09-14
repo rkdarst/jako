@@ -329,8 +329,7 @@ def cdrun(request, did, cdname):
                 for cname, cnodes in cmtys.iteritems():
                     cmty.append(' '.join(str(n) for n in cnodes))
                 comm_str.append('\n'.join(cmty))
-                comm_str.append('\n\n\n')
-            comm_str = '\n'.join(comm_str)
+            comm_str = '\n\n\n\n'.join(comm_str)
 
     return render(request, 'cd20/cdrun.html', locals())
 

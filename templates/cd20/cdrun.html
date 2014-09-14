@@ -1,6 +1,6 @@
 {% extends 'cd20/base.html' %}
-{% block title %}CD: {{netfile}} {{cd.name}} {%endblock%}
-{% block pagetitle %}CD: {{netfile}} {{cd.name}} {%endblock%}
+{% block title %}{{cd.name}} on {{netfile}}  {%endblock%}
+{% block pagetitle %}{{cd.name}} on {{netfile}}  {%endblock%}
 {% block body %}
 
 <h2>Method documentation</h2>
@@ -37,6 +37,11 @@
 
 <p>Here, you can visualize and download your community detection results.</p>
 
+{% if cd.state == "" %}
+You have not yet run the community detection, so nothing is available yet.
+
+
+{% else %}
 <p>Current community state: {{cd.state}}</p>
 
 {% if cd.state == 'D' %}
@@ -65,16 +70,16 @@ persists, please contact the site admin.
 {% endif %}
 
 
+
 <h3>Community listing</h3>
-{% if cd.state != 'D' %}<p>Your community detection is not completed
-  so nothing is available here yet.</p>{% endif%}
 
 {% if comm_str %}
 <pre>
 {{comm_str}}
 </pre>
 {% elif cd.state == 'D' %}
-<p>Your network has too many nodes so results are not printed inline here.</p>
+<p>Your network has too many nodes so results are not embedded here,
+  see the downloads above.</p>
 {% endif %}
 
 
@@ -83,6 +88,7 @@ persists, please contact the site admin.
 raw output</a> of the CD to verify that options used are correct (first
 line) and that there are no other errors.</p>
 
+{% endif %}
 
 {% endblock body %}
 

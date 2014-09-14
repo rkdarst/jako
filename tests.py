@@ -55,7 +55,7 @@ class BasicTest(TestCase):
 
         r = self.client.get('/dataset/20/Copra/')
         self.assertContains(r, 'Copra')
-        self.assertContains(r, 'not completed')
+        self.assertContains(r, 'not yet run')
 
         # Run CD
         r = self.client.post('/dataset/20/Copra/',
@@ -65,3 +65,10 @@ class BasicTest(TestCase):
         r = self.client.get('/dataset/20/Copra/')
 
         self.assertContains(r, 'state: D')
+
+
+class TestAlgs(TestCase):
+  def test_algs(self):
+    from pcd.support import algorithms as algs
+    from cd20.utils import parse_cda_docstring
+    parse_cda_docstring(algs.Infomap)
