@@ -3,9 +3,18 @@
 {% block pagetitle %}CD: {{netfile}} {{cd.name}} {%endblock%}
 {% block body %}
 
+<h2>Method documentation</h2>
+
+<p>The following is the raw documentation of the CD methods.  Methods
+  inherit from each other, and methods are listed from most to least
+  specific.</p>
+
+{% for name, doc in cddoc %}
+<h3>{{name}}</h3>
 <pre>
-{{ cddoc }}
+{{ doc }}
 </pre>
+{% endfor %}
 
 <h2>Set CD method options</h2>
 

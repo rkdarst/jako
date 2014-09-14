@@ -248,7 +248,7 @@ def cdrun(request, did, cdname):
                    (None, cdname),
                    )
 
-    cddoc = cd.get_cddoc()
+    cddoc = cd.get_cddoc() # list of (name, docstring) tuples
 
     run = False
 
@@ -272,11 +272,11 @@ def cdrun(request, did, cdname):
             initials[name] = initial
 
         elif d['type'] == 'bool':
-            options[name] = forms.BooleanField(label=name, help_text=d['doc'])
+            options[name] = forms.BooleanField(label=name, help_text=d['doc'], required=False)
             initials[name] = initial
 
 
-        elif d['type'] == 'list(float)':
+        elif d['type'] == 'list(float)' or d['type'] == 'list of float':
             options[name] = utils.ListField(label=name, type=float,
                                             help_text=d['doc'])
             initials[name] = initial

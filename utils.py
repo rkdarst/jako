@@ -65,14 +65,14 @@ def cda_find_options(cda):
     initial = { }
     for name in dir(cda):
         initial = getattr(cda, name)
-        doc = getattr(cda, '_%s_doc'%name, "")+("  (default: %s)"%(initial, ))
+        doc = getattr(cda, '_%s_doc'%name, "")
         options[name] = dict(initial=initial,
                              doc=doc,
                              type=getattr(cda, '_%s_type'%name, None))
     return options
 
 def parse_cda_docstring(cda):
-    item_re = re.compile(r'''^\s*(?P<name>\w+):[ ]?(?P<type>[\w ,]+)\n
+    item_re = re.compile(r'''^\s*(?P<name>\w+):[ ]?(?P<type>[\w ,.-]+)\n
     (?P<doc>
         ([^\n]+\n)+
     )
@@ -88,9 +88,9 @@ def parse_cda_docstring(cda):
             continue
         initial = getattr(cda, name)
         type_ = m.group('type')
+        type_ = type_.split(', default')[0]
         doc = m.group('doc')
         doc = re.sub(r'^[ \t]+', ' ', doc, flags=re.MULTILINE).strip()
-        doc = "%s %s"%(doc, ("  (default: %s)"%(initial, )))
 
         options[name] = dict(initial=initial,
                              doc=doc,

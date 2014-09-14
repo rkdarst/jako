@@ -188,7 +188,9 @@ class CD(models.Model):
         cda = algs.get(self.name)
         options = { }
 
-        options.update(utils.parse_cda_docstring(cda))
+        for baseclass in reversed(cda.__mro__):
+            if baseclass.__doc__:
+                options.update(utils.parse_cda_docstring(baseclass))
         #options.update(utils.cda_find_options(cda))
 
         for name, data in options.items():  # copy so we can delete
@@ -196,6 +198,8 @@ class CD(models.Model):
                 del options[name]
             if name in utils.excluded_options:
                 del options[name]
+            data['initial'] = getattr(cda, name)
+            data['doc'] += '  (default: %s)'%(data['initial'], )
         return options
 
     @property
@@ -209,7 +213,14 @@ class CD(models.Model):
 
     def get_cddoc(self):
         cda = algs.get(self.name)
-        return utils.dedent(utils.cda_get_doc(cda))
+        cddoc = [ ]
+        for baseclass in cda.__mro__:
+            if baseclass.__name__ == 'CDMethod':
+                break
+            if baseclass.__doc__:
+                cddoc.append((baseclass.__name__,
+                              utils.dedent(baseclass.__doc__.strip()).strip()))
+        return cddoc
 
     def run(self):
         self.state = 'Q'
