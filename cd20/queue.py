@@ -15,7 +15,13 @@ LIMIT_SEC = 60
 logger = logging.getLogger(__name__)
 
 def run(which=None):
-    """Look through queue and run anything that needs to be"""
+    """Look through queue and run anything that needs to be.
+
+    This is the queuerun management command."""
+    if which:
+        os.spawnl(os.P_NOWAIT, *run_queue_command())
+        return False
+
     while True:
 
         if queue_full():

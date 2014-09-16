@@ -178,7 +178,7 @@ def cdrun(request, did, cdname):
 
     # Run CD
     if run:
-        data = cd.run()
+        data = cd.run(wait=True)
         cd = ds.cd_set.get(name=cdname)
         return redirect(cdrun, did, cdname)
 

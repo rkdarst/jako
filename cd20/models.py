@@ -222,12 +222,18 @@ class CD(models.Model):
                               utils.dedent(baseclass.__doc__.strip()).strip()))
         return cddoc
 
-    def run(self):
+    def run(self, wait=False):
         self.state = 'Q'
         self.qtime = datetime.datetime.now()
         self.save()
         from . import queue
-        return queue.run(which=self)
+        queue.run(which=self)
+        if wait is True:
+            time.sleep(.5)
+            for _ in range(3):
+                time.sleep(.5)
+                if self.state == 'D':
+                    break
 
     def _run(self):
         self.clean_dir()
