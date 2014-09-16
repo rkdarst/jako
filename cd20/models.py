@@ -1,6 +1,7 @@
 import datetime
 import itertools
 import logging
+import math
 import os
 from os.path import join, exists
 import cPickle as pickle
@@ -30,8 +31,10 @@ def netfile_upload_to(instance, filename):
     return path
 
 def new_ds_id():
+    max_ = Dataset.objects.count()
+    idx = int(math.log10(max_*100))
     while True:
-        id = random.randint(1, 2**16-1)
+        id = random.randint(int(10**idx), int(10**(1+idx))-1)
         if Dataset.objects.filter(id=id):
             continue
         return id
