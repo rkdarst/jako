@@ -175,4 +175,10 @@ LOGGING = {
 # production.
 USE_X_FORWARDED_HOST = True
 
+from django.contrib.messages import constants as messages
+MESSAGE_TAGS = {
+    messages.ERROR: 'danger',
+    }
+
+
 del base, dirname
