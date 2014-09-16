@@ -50,7 +50,7 @@ class BasicTest(TestCase):
         ds.netfile = utils.get_graph_file('data/karate.gml')
         r = self.client.post('/dataset/20/',
                              dict(netfile=utils.get_graph_file('data/karate.gml'),
-                                  nettype='auto'))
+                                  nettype='auto'), follow=True)
         self.assertContains(r, u'karate.gml')
         r = self.client.get('/dataset/20/')
         self.assertContains(r, u'karate.gml')
