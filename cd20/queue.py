@@ -77,7 +77,7 @@ def queue_next():
 def run_queue_command():
     """Return the command that must be run in order to initialize a queue runner."""
     return [sys.executable, sys.executable,
-            '/srv/jako/jako/manage.py', 'queuerun']
+            '/srv/jako/manage.py', 'queuerun']
 
 
 
