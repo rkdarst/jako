@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>{% block title %}{% endblock title %}</title>
+    <title>{% block title %}{{title}}{% endblock title %}</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
@@ -26,7 +26,7 @@
       </div>
       <div class="nav nav-pills pull-right">
         <ul class="nav navbar-nav">
-          <li><a href="#">About</a></li>
+          <li><a href="{%url jako-about%}">About</a></li>
           <li><a href="#">Contact</a></li>
           <li><a href="#">Thanks</a></li>
         </ul>
@@ -55,12 +55,13 @@
     {% endfor %}
   </ol>
   {% endif %}
-<h1>{%block pagetitle%}{%endblock%}</h1>
+<h1>{%block pagetitle%}{{pagetitle}}{%endblock%}</h1>
 <!--<p class="lead"></p>-->
 <!--<div class="page-header">
 </div>-->
 
 {% block body%}
+{{ body|safe }}
 {% endblock body%}
 </div>
 </body>

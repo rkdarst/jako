@@ -14,5 +14,9 @@ urlpatterns = patterns('',
         views.cmtys_viz, ),
     url(r'^dataset/(?P<did>[0-9]+)/(?P<cdname>\w+)/stdout$',
         views.cmtys_stdout, ),
+
+
+    url(r'^about/$','cd20.flatpages.view_flat', dict(pagename='about'),
+                   name='jako-about'),
     )
 
