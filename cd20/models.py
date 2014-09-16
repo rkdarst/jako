@@ -10,6 +10,7 @@ import time
 
 from django.db import models
 from django.core.files.storage import Storage
+from django.utils.timezone import now as utcnow
 
 import networkx as nx
 import pcd.support.algorithms as algs
@@ -224,7 +225,7 @@ class CD(models.Model):
 
     def run(self, wait=False):
         self.state = 'Q'
-        self.qtime = datetime.datetime.now()
+        self.qtime = utcnow()
         self.save()
         from . import queue
         queue.run(which=self)
@@ -245,10 +246,10 @@ class CD(models.Model):
         self.state = 'R'
         self.save()
         # Do actual running
-        self.rtime = datetime.datetime.now()
+        self.rtime = utcnow()
         start_time = time.time()
         cd = cda(g, dir=self.basedir, verbosity=-10, **self.options_dict)
-        self.dtime = datetime.datetime.now()
+        self.dtime = utcnow()
         self.runtime = time.time() - start_time
         # Process results
         self.save_results(cd.results)
