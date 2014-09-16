@@ -14,6 +14,12 @@ from django.test.utils import override_settings
 from . import models
 from . import utils
 
+# This is needed to have the queue running be done in the same process
+# (to use the test DB), instead of spawning a new process (and thus
+# using the production DB) which was recently made the default.
+from . import queue
+queue.spawn_queue = queue.run
+
 class BasicTest(TestCase):
     @classmethod
     def setUpClass(cls):

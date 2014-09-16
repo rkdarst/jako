@@ -19,7 +19,7 @@ def run(which=None):
 
     This is the queuerun management command."""
     if which:
-        os.spawnl(os.P_NOWAIT, *run_queue_command())
+        spawn_queue()
         return False
 
     while True:
@@ -47,7 +47,7 @@ def run(which=None):
             logger.debug("queue.py: Requested to run %s"%which)
             if which != next:
                 logger.debug("queue.py: Requested CD is not next in queue, spawning queuerunner"%which)
-                os.spawnl(os.P_NOWAIT, *run_queue_command())
+                spawn_queue()
                 return False
 
             # Run `which` in current process and block for its completion.
@@ -58,7 +58,7 @@ def run(which=None):
             # Done running the passed object.  Fork to start new queue runner, and return
             logger.debug("queue.py: Spawning queuerunner.")
             if not queue_empty():
-                os.spawnl(os.P_NOWAIT, *run_queue_command())
+                spawn_queue()
             return ret
 
         runCD(next)
@@ -84,7 +84,8 @@ def run_queue_command():
     """Return the command that must be run in order to initialize a queue runner."""
     return [sys.executable, sys.executable,
             '/srv/jako/manage.py', 'queuerun']
-
+def spawn_queue():
+    return os.spawnl(os.P_NOWAIT, *run_queue_command())
 
 
 def runCD(cd):
