@@ -10,7 +10,7 @@ ADMINS = (
 
 # Get sqlite database from outside of VCS
 from os.path import dirname
-base = dirname(dirname(dirname(__file__)))
+base = dirname(dirname((__file__)))
 import sys
 sys.path.append(base)
 dbpath = base+'/db/jako.sqlite'
@@ -94,8 +94,8 @@ STATICFILES_FINDERS = (
 SECRET_KEY = 'z-2v8e1c$cp$*1f)+ymrk&amp;m%ye#h_@hb_at8&amp;v9^b3#ijpwrnj'
 try:
     # Load custom secret key from outside of VCS
-    SECRET_KEY = open(dirname(dirname(dirname(
-                      __file__)))+'/secret-key.txt').read().strip()
+    SECRET_KEY = open(dirname(dirname(
+                      __file__))+'/secret-key.txt').read().strip()
     #print SECRET_KEY
 except OSError:
     pass
