@@ -44,16 +44,16 @@ def run(which=None):
             # Regardless, after this run, if we are at this point then
             # we have the ability to run something in the queue.
             # Spawn a child process to run it.
-            logger.debug("queue.py: Requested to run %s"%which)
+            logger.debug("queue.py: Requested to run %s", which)
             if which != next:
-                logger.debug("queue.py: Requested CD is not next in queue, spawning queuerunner"%which)
+                logger.debug("queue.py: Requested CD %s is not next in queue, spawning queuerunner", which)
                 spawn_queue()
                 return False
 
             # Run `which` in current process and block for its completion.
-            logger.debug("queue.py: Running requested CD."%which)
+            logger.debug("queue.py: Running requested CD %s.", which)
             ret = runCD(which)
-            logger.debug("queue.py: Done running requested CD."%which)
+            logger.debug("queue.py: Done running requested CD %s.", which)
 
             # Done running the passed object.  Fork to start new queue runner, and return
             logger.debug("queue.py: Spawning queuerunner.")
@@ -92,7 +92,7 @@ def runCD(cd):
     """Run a single CD method and return.
 
     Use `run()` as the main entry point."""
-    logger.debug("runCD:", cd)
+    logger.debug("runCD: %s", cd)
     def preexec():
         resource.setrlimit(resource.RLIMIT_CPU, (LIMIT_SEC, LIMIT_SEC))
 
@@ -124,7 +124,7 @@ def runCD(cd):
     signal = status % 256
     exitstatus = status // 256
 
-    logger.debug("runCD: done running", cd, _waited_pid, signal, exitstatus)
+    logger.debug("runCD: done running %s %s %s %s", cd, _waited_pid, signal, exitstatus)
 
     # We must get updated values from the database since it has been
     # modefied in another process.
