@@ -1,5 +1,6 @@
 # Create your views here.
 
+from functools import partial
 import json
 import logging
 import os.path
@@ -8,6 +9,7 @@ from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.core.urlresolvers import reverse
 from django import forms
+from django.contrib import messages
 
 import networkx as nx
 from pcd.ioutil import read_any
@@ -57,6 +59,7 @@ def new(request):
     if request.method == "POST":
         ds = Dataset()
         ds.save()
+        messages.success(request, "New dataset %s created."%ds.name())
         return redirect(dataset, ds.id)
     return redirect(main)
 
@@ -73,8 +76,10 @@ def dataset(request, id):
         if netform.is_valid():
             f = request.FILES['netfile']
             ds.nettype = netform.cleaned_data['nettype']
-            netfile_upload_message = ds.set_network(f)
+            netfile_upload_message = ds.set_network(
+                f, messenger=partial(messages.add_message, request))
             ds.save()
+            #messages.success(request, "Network file updated.")
             return redirect(dataset, id)
     else:
         netform = NetworkForm(initial={'nettype':ds.nettype})
@@ -93,6 +98,7 @@ def dataset(request, id):
             # Make new CD run
             cd = CD(ds=ds, name=cdname)
             cd.save()
+            messages.success(request, "Created CD run %s on dataset %s."%(cdname, ds.name()))
             return redirect(cdrun, ds.id, cdname)
     cdnameform = CdNameForm()
 
@@ -170,7 +176,7 @@ def cdrun(request, did, cdname):
             cd.options_dict = optionform.cleaned_data
             run = True
         else:
-            pass
+            messages.error(request, "Invalid options given.")
     else:
         if cd.options_dict:
             initials.update(cd.options_dict)
@@ -180,6 +186,12 @@ def cdrun(request, did, cdname):
     if run:
         data = cd.run(wait=True)
         cd = ds.cd_set.get(name=cdname)
+        if cd.state == 'D':
+            messages.success(request, "CD run complete.")
+        elif cd.state in 'QR':
+            messages.info(request, "CD run submitted.")
+        else:
+            messages.info(request, "CD run: error: state is %s"%cd.state)
         return redirect(cdrun, did, cdname)
 
     if cd.state == 'D':

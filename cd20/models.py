@@ -71,6 +71,15 @@ class Dataset(models.Model):
     def delete(self):
         shutil.rmtree(self.basedir)
         super(CD, self).delete()
+    def name(self):
+        """Human-readable name for this dataset, for example for logging messages."""
+        if self.netfile:
+            return u"DS#%s (%s)"%(self.id, self.netfile_name())
+        return u"DS#%s"%self.id
+    def netfile_name(self):
+        if not self.netfile:
+            return None
+        return os.path.basename(self.netfile.name)
 
     @property
     def basedir(self):
@@ -87,18 +96,20 @@ class Dataset(models.Model):
         """Get size limits of uploaded networks."""
         return dict(bytes=MAX_NETWORK_BYTES, nodes=MAX_NETWORK_NODES,
                     edges=MAX_NETWORK_EDGES)
-    def set_network(self, f):
+    def set_network(self, f, messenger=None):
         """User has uploaded a graph, save and sanity check it"""
+        from django.contrib import messages
         limits = self.get_network_limits()
         # Check size
         if f.size > limits['bytes']:
             netfile_upload_message = "Upload failed, network is too big"
+            if messenger:
+                messenger(messages.ERROR, netfile_upload_message)
             return netfile_upload_message
         # Do actual saving of network.
         if self.netfile:
             self.del_network()
         self.netfile = f
-        netfile_upload_message = "Successfully uploaded %s"%f.name
         self.save()
         # Make sure that network can be loaded
         try:
@@ -106,20 +117,29 @@ class Dataset(models.Model):
         except Exception as e:
             self.del_network()
             netfile_upload_message = 'Upload failed, network not openable (%s, %s)'%(self.nettype, e)
+            if messenger:
+                messenger(messages.ERROR, netfile_upload_message)
             return netfile_upload_message
         # Check nodes/edges limits...
         if len(g) > limits['nodes']:
-            return 'Upload failed, too many nodes in network.'
+            msg = 'Upload failed, too many nodes in network.'
+            if messenger:
+                messenger(messages.ERROR, msg)
+            return msg
         if g.number_of_edges() > limits['edges']:
             self.del_network()
-            return 'Upload failed, too many edges in network.'
+            msg = 'Upload failed, too many edges in network.'
+            if messenger:
+                messenger(messages.ERROR, msg)
+            return msg
         # Run and save basic network statistics.
         self.study_network(g)
+        netfile_upload_message = \
+                 "Successfully uploaded %s: %s nodes, %s edges"%(
+            f.name, self.nodes, self.edges)
+        if messenger:
+            messenger(messages.SUCCESS, netfile_upload_message)
         return netfile_upload_message
-    def netfile_name(self):
-        if not self.netfile:
-            return None
-        return os.path.basename(self.netfile.name)
 
     def get_networkx(self):
         if not self.netfile:
