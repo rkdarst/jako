@@ -75,6 +75,7 @@ def dataset(request, id):
             ds.nettype = netform.cleaned_data['nettype']
             netfile_upload_message = ds.set_network(f)
             ds.save()
+            return redirect(dataset, id)
     else:
         netform = NetworkForm(initial={'nettype':ds.nettype})
 
@@ -179,6 +180,7 @@ def cdrun(request, did, cdname):
     if run:
         data = cd.run()
         cd = ds.cd_set.get(name=cdname)
+        return redirect(cdrun, did, cdname)
 
     if cd.state == 'D':
         results = cd.get_results()
