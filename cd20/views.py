@@ -178,8 +178,7 @@ def cdrun(request, did, cdname):
     # Run CD
     if run:
         data = cd.run()
-        #results = data['results']
-        #stdout = data['stdout']
+        cd = ds.cd_set.get(name=cdname)
 
     if cd.state == 'D':
         results = cd.get_results()
