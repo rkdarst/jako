@@ -182,7 +182,7 @@ class Dataset(models.Model):
 class CD(models.Model):
     name = models.CharField("algorithm class name", max_length=32)
     ds = models.ForeignKey(Dataset)
-    state = models.CharField("", max_length=1)
+    state = models.CharField("state", max_length=1)
     btime = models.DateTimeField("birth time", auto_now_add=True)
     mtime = models.DateTimeField("modification time", auto_now=True)
     atime = models.DateTimeField("access time", auto_now=True)
@@ -191,7 +191,7 @@ class CD(models.Model):
     dtime = models.DateTimeField("time finished running", null=True)
 
     options = models.TextField("cd options")
-    runtime = models.FloatField("cd options", null=True)
+    runtime = models.FloatField("run time", null=True)
     n_layers = models.IntegerField("number of layers", null=True)
     n_cmty = models.TextField("number of nodes", null=True)
 
