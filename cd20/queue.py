@@ -6,6 +6,7 @@ import sys
 import time
 
 from django.db import transaction
+from django.utils.timezone import now as utcnow
 
 from . import models
 
@@ -117,6 +118,15 @@ def runCD(cd):
             logger.error("%s"%type)
             logger.error("%s"%value)
             logger.error("\n".join(traceback.format_tb(tb)))
+            f = open(cd.basedir+'/jako-queue.stdout', 'w')
+            #print >> f, "%s(%r)"%(type.__name__, value)
+            print >> f, "%r"%value
+            print >> f
+            print >> f, "\n".join(traceback.format_tb(tb))
+            f.close()
+            cd.state = 'X'
+            cd.dtime = utcnow()
+            cd.save()
             os._exit(1)
         os._exit(0)  # exit after the fork
     # parent process
@@ -135,6 +145,7 @@ def runCD(cd):
         return True
     else:
         cd.state = 'X'
+        cd.dtime = utcnow()
         cd.save()
         message = 'CD(%s) died, signal=%s, exitstatus=%s'%(cd.id, signal, exitstatus)
         #print message
