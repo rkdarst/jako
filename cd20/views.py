@@ -120,7 +120,7 @@ def cdrun(request, did, cdname):
                    (None, cdname),
                    )
 
-    cddoc = cd.get_cddoc() # list of (name, docstring) tuples
+    cddoc = cd.get_cddoc(html=True) # list of (name, docstring) tuples
 
     run = False
 

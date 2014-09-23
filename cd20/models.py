@@ -6,12 +6,14 @@ import os
 from os.path import join, exists
 import cPickle as pickle
 import random
+import re
 import shutil
 import time
 
 from django.db import models
 from django.core.files.storage import Storage
 from django.utils.timezone import now as utcnow
+from django.utils.html import escape, mark_safe
 
 import networkx as nx
 import pcd.support.algorithms as algs
@@ -235,15 +237,21 @@ class CD(models.Model):
     def options_dict(self, value):
         self.options = pickle.dumps(value, protocol=0)
 
-    def get_cddoc(self):
+    def get_cddoc(self, html=False):
         cda = algs.get(self.name)
         cddoc = [ ]
         for baseclass in cda.__mro__:
             if baseclass.__name__ == 'CDMethod':
                 break
             if baseclass.__doc__:
-                cddoc.append((baseclass.__name__,
-                              utils.dedent(baseclass.__doc__.strip()).strip()))
+                doc = utils.dedent(baseclass.__doc__.strip()).strip()
+                if html:
+                    escape(doc)
+                    doc = re.sub(r'((https?|ftps?)://[^\s]+[^\s\.,])',
+                                 r'<a href=\1>\1</a>',
+                                 doc)
+                    doc = mark_safe(doc)
+                cddoc.append((baseclass.__name__, doc))
         return cddoc
 
     def run(self, wait=False):
