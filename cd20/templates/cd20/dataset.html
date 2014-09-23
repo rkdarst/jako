@@ -44,7 +44,7 @@ This dataset has {{ds.nodes}} nodes, {{ds.edges}} edges, and an
   {%endif%}
   {%if cd.state == 'R'%} Running for {{cd.rtime|timesince }}. {%endif%}
   {%if cd.state == 'Q'%} Queued for {{cd.qtime|timesince }}. {%endif%}
-  {%if cd.state == 'X'%} Run died at {{cd.dtime|timesince }}. {%endif%}
+  {%if cd.state == 'X'%} Run died with error. {%endif%}
 
   </li>
 {% empty %}

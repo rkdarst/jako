@@ -45,6 +45,7 @@ You have not yet run the community detection, so nothing is available yet.
 <p>Current community state: {{cd.state}}</p>
 
 {% if cd.state == 'D' %}
+Total runtime was {{cd.dtime|timesince:cd.rtime }}.
 <ul>
 {% for cmtys in results %}
   <li> Layer {{forloop.counter0}}, <i>{{cmtys.label}}</i> {{cmtys|length}} communities.
@@ -59,17 +60,19 @@ You have not yet run the community detection, so nothing is available yet.
 </li>
 {% endfor %}
 </ul>
-{% endif %}
 
-{% if cd.state == 'Q' %}
-Community detection run is queued since {{cd.qtime}}
+
+{% elif cd.state == 'R' %}
+Community detection is running {{ cd.rtime|timesince }}.<p>
+<input type="button" value="Reload Page" onClick="window.location.reload(true)">
+{% elif cd.state == 'Q' %}
+Community detection run is queued for {{cd.qtime|timesince}}.<p>
+<input type="button" value="Reload Page" onClick="window.location.reload(true)">
 {% endif %}
 {% if cd.state == 'X' %}
-Your community detection run has died somehow.  If this problem
+Your community detection died with an error at {{ cd.dtime }}.  If this problem
 persists, please contact the site admin.
 {% endif %}
-
-
 
 <h3>Community listing</h3>
 
