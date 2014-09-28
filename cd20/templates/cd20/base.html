@@ -10,10 +10,11 @@
     {% block head %}{% endblock head %}
     <style type="text/css">
       td, th {
-        padding-bottom: 35px;
+        padding-bottom: 1em;
         padding-right: 5px;
         vertical-align: top;
       }
+      h2 { padding-top: 1em; }
     </style>
 
 </head>
@@ -34,14 +35,6 @@
     </div>
   </div>
 
-{% if messages %}
-{% for message in messages %}
-  <div class="alert alert-{{message.tags}} alert-dismissible" role="alert">{{ message }}
-    <!--<button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>-->
-  </div>
-{% endfor %}
-{% endif%}
-
 
 <div class="container">
   {% if breadcrumbs %}
@@ -55,10 +48,24 @@
     {% endfor %}
   </ol>
   {% endif %}
+
+
+{% if messages %}
+{% for message in messages %}
+  <div class="alert alert-{{message.tags}} alert-dismissible" role="alert">{{ message }}
+    <!--<button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>-->
+  </div>
+{% endfor %}
+{% endif%}
+
+
 <h1>{%block pagetitle%}{{pagetitle}}{%endblock%}</h1>
 <!--<p class="lead"></p>-->
 <!--<div class="page-header">
 </div>-->
+
+
+
 
 {% block body%}
 {{ body|safe }}

@@ -55,7 +55,7 @@ Total runtime was {{cd.dtime|timesince:cd.rtime }}.
     <a href="{% url cd20.views.download_cmtys did=ds.id cdname=cdname layer=forloop.parentloop.counter0 format=ext %}">{{description}}</a>,
     {% endfor %}
       </li>
-      <li> <a href="{% url cd20.views.cmtys_viz did=ds.id cdname=cdname layer=forloop.counter0%}">Visualize</a> </li>
+      <li> <a href="{% url cd20.views.cmtys_viz did=ds.id cdname=cdname layer=forloop.counter0%}">Interactive visualization</a> </li>
     </ul>
 </li>
 {% endfor %}

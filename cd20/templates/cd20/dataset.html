@@ -6,8 +6,8 @@
 
 {% block body %}
 
-<p>Current network: {{ ds.netfile_name }}.
 {% if ds.nodes %}
+<p>Current network: {{ ds.netfile_name }}.
 This dataset has {{ds.nodes}} nodes, {{ds.edges}} edges, and an
   average clustering coefficient of {{ds.clustc}}.
 {% if ds.weighted == 1 %} All edges have explicit weights. {%endif%}
@@ -16,10 +16,10 @@ This dataset has {{ds.nodes}} nodes, {{ds.edges}} edges, and an
 {% endif %}
 </p>
 
-<h2>Set network</h2>
+<h2>Upload network</h2>
 
-<p>Current network size limits:
-{{ds.get_network_limits.bytes|filesizeformat}} bytes,
+<p>Maximum upload size:
+{{ds.get_network_limits.bytes|filesizeformat}},
 {{ds.get_network_limits.nodes}} nodes,
 {{ds.get_network_limits.edges}} edges.</p>
 
@@ -33,14 +33,25 @@ This dataset has {{ds.nodes}} nodes, {{ds.edges}} edges, and an
 </form>
 
 
-<h2>CD Runs</h2>
+{#<h2>Community detection</h2>#}
 
-<h3>Existing runs</h3>
+<h2>Run a new method</h2>
+
+<form method="post">
+  {% csrf_token %}
+  <table>
+    {{ cdnameform.as_table }}
+  </table>
+<input type="submit" value="Add the method"/>
+</form>
+
+
+<h2>Existing results</h2>
 <ul>
 {% for cd in cd_runs %}
   <li><a href={% url cd20.views.cdrun ds.id cd.name %}>{{cd.name}}</a>
   {%if cd.state == 'D'%} Done,
-    {{cd.runtime|floatformat}}s, {{cd.n_layers}} layers, [{{cd.n_cmty}}] communities per layer.
+    {{cd.runtime|floatformat}}s, {{cd.n_layers}} layers{{cd.n_layers|pluralize}}.  {#, [{{cd.n_cmty}}] communities per layer.#}
   {%endif%}
   {%if cd.state == 'R'%} Running for {{cd.rtime|timesince }}. {%endif%}
   {%if cd.state == 'Q'%} Queued for {{cd.qtime|timesince }}. {%endif%}
@@ -55,14 +66,5 @@ This dataset has {{ds.nodes}} nodes, {{ds.edges}} edges, and an
 </ul>
 
 
-<h3>Add a new run:</h3>
-
-<form method="post">
-  {% csrf_token %}
-  <table>
-    {{ cdnameform.as_table }}
-  </table>
-  <input type="submit" value="Add CD method" />
-</form>
 
 {% endblock body%}

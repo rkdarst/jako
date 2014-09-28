@@ -25,11 +25,12 @@ logger = logging.getLogger(__name__)
 
 class NetworkForm(forms.Form):
     netfile = forms.FileField(label="Network file",
-                              help_text="Select network file to upload or replace existing one.  "
-                              "If the new network does not validate, you may lose the old one.")
+                              help_text="Select network file to upload or to replace existing network.  "
+                              "Any old network will be lost."
+                              )
     nettype = forms.ChoiceField(label="Network type", choices=models.net_types,
-                                help_text="Auto recommended.  Other types are as parsed by <i>read_*</i> "
-                                '<a href="http://networkx.github.io/documentation/networkx-1.9/reference/readwrite.html">functions</a> in networkx.')
+                                help_text='Different formats are read by the <a href="http://networkx.github.io/documentation/networkx-1.9/reference/readwrite.html"><i>read_*</i> '
+                                'functions in networkx</a>.')
 
 import types
 def as_table2(self):
