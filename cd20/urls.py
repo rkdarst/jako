@@ -12,6 +12,8 @@ urlpatterns = patterns('',
         views.download_cmtys, ),
     url(r'^dataset/(?P<did>[0-9]+)/(?P<cdname>\w+)/(?P<layer>\w+)/viz(?P<ext>[.\w]+)?$',
         views.cmtys_viz, ),
+    url(r'^dataset/(?P<did>[0-9]+)/(?P<cdname>\w+)/(?P<layer>\w+)/draw(?P<ext>[.\w]+)?$',
+        views.cmtys_draw, ),
     url(r'^dataset/(?P<did>[0-9]+)/(?P<cdname>\w+)/stdout$',
         views.cmtys_stdout, ),
 

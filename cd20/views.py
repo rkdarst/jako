@@ -311,6 +311,48 @@ def download_cmtys(request, did, cdname, layer, format):
     return response
 
 
+def cmtys_draw(request, did, cdname, layer, ext):
+    did = int(did)
+    ds = Dataset.objects.get(id=did)
+    cd = ds.cd_set.get(name=cdname)
+
+    import matplotlib ; matplotlib.use('Agg')
+    from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+    from matplotlib.figure import Figure
+
+    dpi = 96
+    fig = Figure(figsize=(8, 5), dpi=dpi)
+    canvas = FigureCanvas(fig)
+    #ax = fig.add_subplot(111)
+    ax = fig.add_axes([0, 0, 1, 1])
+
+    g = ds.get_networkx()
+    cmtys = cd.get_results()[int(layer)]
+    nodecolors = cmtys.nodecolors()
+
+    # Do actual plotting.
+    nodelist = g.nodes()
+    nodecolors = [nodecolors[n] for n in nodelist]
+    import nxdraw_without_pylab
+    nxdraw_without_pylab.draw_networkx(g, ax=ax, with_labels=True, node_color=nodecolors, nodelist=nodelist)
+    ax.set_axis_off()
+
+    # Manually compute the bbox in order to get a tight layout.
+    bbox = ax.collections[0].get_window_extent(fig)  # patches
+    #bbox = ax.collections[1].get_window_extent(ax)  # lines
+    from matplotlib.transforms import TransformedBbox, Affine2D
+    bbox2 = TransformedBbox(bbox, Affine2D().scale(1. / dpi))
+    #from fitz import interactnow
+    bbox._points[0] -= .15 * dpi
+    bbox._points[1] += .15 * dpi
+
+    # Save the figure to an in-memory StringIO and return it.
+    import cStringIO
+    p = cStringIO.StringIO()
+    canvas.print_figure(p, format='pdf', bbox_inches=bbox2) #bbox_inches='tight')
+    response = HttpResponse(p.getvalue(), mimetype="application/pdf")
+    return response
+
 
 def cmtys_stdout(request, did, cdname, ext=None):
     """Show raw standard output of CD runs.
