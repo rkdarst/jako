@@ -19,15 +19,14 @@ from .config import *
 from . import models
 from .models import Dataset, CD
 from . import utils
+from . import cdas
 
 logger = logging.getLogger(__name__)
 
 
 class NetworkForm(forms.Form):
     netfile = forms.FileField(label="Network file",
-                              help_text="Select network file to upload or to replace existing network.  "
-                              "Any old network will be lost."
-                              )
+                              help_text="Select network file to upload or to replace existing network.  ")
     nettype = forms.ChoiceField(label="Network type", choices=models.net_types,
                                 help_text='Different formats are read by the <a href="http://networkx.github.io/documentation/networkx-1.9/reference/readwrite.html"><i>read_*</i> '
                                 'functions in networkx</a>.')
@@ -46,7 +45,9 @@ forms.BaseForm.as_table = types.MethodType(as_table2, None, forms.BaseForm)
 
 class CdNameForm(forms.Form):
     cdname = forms.ChoiceField(label='Method Name',
-                                  choices=[(None, '<select>')]+[(x, x) for x in CDMETHODS])
+                               #choices=[(None, '<select>')]+[(x, x) for x in CDMETHODS]
+                               choices = cdas.methods,
+                               )
 
 
 

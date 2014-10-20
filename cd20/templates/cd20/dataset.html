@@ -2,26 +2,51 @@
 
 {% block title %}Dataset {{ ds.id }} ({{ ds.netfile_name}}) {% endblock title%}
 
-{% block pagetitle %}Dataset {{ ds.id }} ({{ ds.netfile_name}}) {% endblock pagetitle%}
+{% block pagetitle %}{%if ds.netfile_name%}{{ds.netfile_name}}{%else%}New dataset{%endif%} (id #{{ ds.id }}) {% endblock pagetitle%}
 
 {% block body %}
 
-{% if ds.nodes %}
+{% if ds.netfile %}
+{% comment %}
 <p>Current network: {{ ds.netfile_name }}.
 This dataset has {{ds.nodes}} nodes, {{ds.edges}} edges, and an
   average clustering coefficient of {{ds.clustc}}.
 {% if ds.weighted == 1 %} All edges have explicit weights. {%endif%}
 {% if ds.weighted == 2 %} There are some weighted edges. {%endif%}
 {% if ds.weighted == 0 %} There are no weighted edges. {%endif%}
+{% endcomment %}
+
+<div style="margin-left:2em;">
+<table>
+<tr><th>creation time</th><td>{{ds.btime|date:"r"}}</td></tr>
+{% for name, val in ds.network_properties %}
+<tr><th>{{name}}</th><td>{{val}}</td></tr>
+{% endfor %}
+</table>
+</div>
+
+
 {% endif %}
 </p>
 
-<h2>Upload network</h2>
+
+<h2>{% if not ds.netfile %}Upload network{% else %}Replace network {% endif%}</h2>
+
+{% if not ds.netfile %}
+First, you need to upload a network file.
+{% else %}
+If you would like, you can replace the network file.  Uploading a
+new network will permanently erase the old one.  All CD runs will
+be deleted.
+{% endif %}
+Upload is supported in various formats, and with node labels of any
+types.<p>
 
 <p>Maximum upload size:
 {{ds.get_network_limits.bytes|filesizeformat}},
 {{ds.get_network_limits.nodes}} nodes,
-{{ds.get_network_limits.edges}} edges.</p>
+{{ds.get_network_limits.edges}} edges.
+</p>
 
 <form enctype="multipart/form-data" method="post">
   {% csrf_token %}
@@ -33,7 +58,7 @@ This dataset has {{ds.nodes}} nodes, {{ds.edges}} edges, and an
 </form>
 
 
-{#<h2>Community detection</h2>#}
+{% if ds.netfile %}
 
 <h2>Run a new method</h2>
 
@@ -65,6 +90,6 @@ This dataset has {{ds.nodes}} nodes, {{ds.edges}} edges, and an
 {% endfor %}
 </ul>
 
-
+{% endif %} {# ds.netfile #}
 
 {% endblock body%}

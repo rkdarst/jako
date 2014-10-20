@@ -74,14 +74,20 @@ class Dataset(models.Model):
             return u'<<Dataset(ds=%s, %s)>>'%(self.id, os.path.basename(self.netfile.name))
         return u'<<Dataset(ds=%s)>>'%(self.id, )
     def delete(self):
-        shutil.rmtree(self.basedir)
-        super(CD, self).delete()
+        self.clean_dir()
+        super(Dataset, self).delete()
+    def clean_dir(self):
+        if self.netfile:
+            self.del_network()
+        if os.path.isdir(self.basedir):
+            shutil.rmtree(self.basedir)
     def name(self):
         """Human-readable name for this dataset, for example for logging messages."""
         if self.netfile:
             return u"DS#%s (%s)"%(self.id, self.netfile_name())
         return u"DS#%s"%self.id
     def netfile_name(self):
+        """Basename of uploaded network file (human-readable)"""
         if not self.netfile:
             return None
         return os.path.basename(self.netfile.name)
@@ -112,8 +118,7 @@ class Dataset(models.Model):
                 messenger(messages.ERROR, netfile_upload_message)
             return netfile_upload_message
         # Do actual saving of network.
-        if self.netfile:
-            self.del_network()
+        self.clean_dir()
         self.netfile = f
         self.save()
         # Make sure that network can be loaded
@@ -179,6 +184,20 @@ class Dataset(models.Model):
             self.weighted = 2
         else:
             self.weighted = 0
+    def network_properties(self):
+        def round2(x):
+            return round(x, -int(math.log(x, 10) - 3))
+        props =  [('number of nodes', self.nodes),
+                  ('number of edges', self.edges),
+                  ('avg. clustering coefficient', round2(self.clustc)),
+                  ]
+        if self.weighted == 1:
+            props.append(('weighted edges?', 'yes (all)'),)
+        elif self.weighted == 2:
+            props.append(('weighted edges?', 'yes (some, but not all)'),)
+        elif self.weighted == 0:
+            props.append(('weighted edges?', 'no'),)
+        return props
 
 
 class CD(models.Model):
@@ -205,6 +224,9 @@ class CD(models.Model):
     def clean_dir(self):
         if os.path.isdir(self.basedir):
             shutil.rmtree(self.basedir)
+    @property
+    def total_runtime(self):
+        return self.dtime - self.rtime
 
     @property
     def basedir(self):
