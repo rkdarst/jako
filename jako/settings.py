@@ -147,20 +147,54 @@ INSTALLED_APPS = (
 # the site admins on every HTTP 500 error when DEBUG=False.
 # See http://docs.djangoproject.com/en/dev/topics/logging for
 # more details on how to customize your logging configuration.
+import logging
+class RequireDebugFalse(logging.Filter):
+    def filter(self, record):
+        return not DEBUG
+class RequireDebugTrue(logging.Filter):
+    def filter(self, record):
+        return DEBUG
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'filters': {
         'require_debug_false': {
             '()': 'django.utils.log.RequireDebugFalse'
+            },
+        'require_debug_true': {
+            '()': RequireDebugTrue,
         }
     },
+    'formatters': {
+        'logline': {
+            "class": 'logging.Formatter',
+            "format": '%(asctime)s %(levelname)s %(module)s %(name)s '
+                      '%(message)s'
+            },
+        'logline_short': {
+            "class": 'logging.Formatter',
+            "format": '%(name)s %(levelname)s %(message)s'
+            },
+        },
     'handlers': {
         'mail_admins': {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
             'class': 'django.utils.log.AdminEmailHandler'
-        }
+        },
+        'console': {
+            'class':'logging.StreamHandler',
+            'level':"DEBUG",
+            'filters': ['require_debug_true'],
+            'formatter': 'logline_short',
+            },
+        'logfile': {
+            'class':'logging.StreamHandler',
+            'level':"DEBUG",
+            'filters': ['require_debug_false'],
+            'stream': open("tmp/log.txt", 'a'),
+            'formatter': 'logline',
+            },
     },
     'loggers': {
         'django.request': {
@@ -168,7 +202,13 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': True,
         },
-    }
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        "": dict(handlers=['logfile', 'console'], level='DEBUG' ),
+    },
 }
 
 # If the site is behind a proxy, set this to True.  Note: remove in
