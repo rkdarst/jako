@@ -23,6 +23,7 @@ algs.global_code_path.insert(0, '/srv/jako/cd-code/')
 
 from .config import *
 from . import utils
+from . import cdas
 
 logger = logging.getLogger(__name__)
 
@@ -218,6 +219,8 @@ class CD(models.Model):
 
     def __unicode__(self):
         return u'<<CD(%s, id=%s, ds=%s, %s)>>'%(self.state, self.id, self.ds.id, self.name)
+    def name_pretty(self):
+        return cdas.descriptions.get(self.name, self.name)
     def delete(self):
         self.clean_dir()
         super(CD, self).delete()
@@ -232,11 +235,24 @@ class CD(models.Model):
     def basedir(self):
         return join(self.ds.basedir, self.name)
 
-    def available_options(self):
+    def available_options(self, ignore_overridden_opts=False):
         cda = algs.get(self.name)
         options = { }
 
+        # Iterate in order from parent classes (object) to concrete CD
+        # class.
         for baseclass in reversed(cda.__mro__):
+            # If an option is set (overridden) in a child class, but
+            # was documented in a parent class, then that means that
+            # this is an explicitely overridden option, and should not
+            # be considered free for modification.  In this case,
+            # remove it from the options we are returning as
+            # modifiable.
+            if ignore_overridden_opts:
+                for name in tuple(options):
+                    if name in baseclass.__dict__:
+                        del options[name]
+            #
             if baseclass.__doc__:
                 options.update(utils.parse_cda_docstring(baseclass))
         #options.update(utils.cda_find_options(cda))

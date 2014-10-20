@@ -76,7 +76,7 @@ types.<p>
 {% for cd in cd_runs %}
   <li><a href={% url cd20.views.cdrun ds.id cd.name %}>{{cd.name}}</a>
   {%if cd.state == 'D'%} Done,
-    {{cd.runtime|floatformat}}s, {{cd.n_layers}} layers{{cd.n_layers|pluralize}}.  {#, [{{cd.n_cmty}}] communities per layer.#}
+    {{cd.runtime|floatformat}}s, {{cd.n_layers}} layer{{cd.n_layers|pluralize}}.  {#, [{{cd.n_cmty}}] communities per layer.#}
   {%endif%}
   {%if cd.state == 'R'%} Running for {{cd.rtime|timesince }}. {%endif%}
   {%if cd.state == 'Q'%} Queued for {{cd.qtime|timesince }}. {%endif%}

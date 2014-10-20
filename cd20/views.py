@@ -4,6 +4,7 @@ from functools import partial
 import json
 import logging
 import os.path
+import re
 
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
@@ -123,13 +124,15 @@ def cdrun(request, did, cdname):
                    )
 
     cddoc = cd.get_cddoc(html=True) # list of (name, docstring) tuples
+    cd_desc = cdas.descriptions.get(cdname, cdname)
 
     run = False
 
     # Make the options form
     options = { }
     initials = { }
-    for name, d in cd.available_options().iteritems():
+    available_options = cd.available_options(ignore_overridden_opts=True)
+    for name, d in available_options.iteritems():
         initial = d['initial']
         if d['type'] == 'int, optional':
             options[name] = forms.IntegerField(label=name, help_text=d['doc'], required=False)
@@ -261,7 +264,7 @@ def cmtys_viz(request, did, cdname, layer, ext=None):
 
 download_formats = [
     ('txt', 'One line per community'),
-    ('clu', '(node cmty) pairs'),
+    ('nc',  '(node cmty) pairs'),
     ('gexf', 'GEXF graph with "cmty" attribute'),
     ('gml', 'GML graph with "cmty" attribute'),
     ]
@@ -287,7 +290,7 @@ def download_cmtys(request, did, cdname, layer, format):
         for cname, cnodes in cmtys.iteritems():
             data.append(' '.join(str(x) for x in cnodes))
         data = '\n'.join(data)
-    elif format == 'clu':
+    elif format == 'nc':
         for cname, cnodes in cmtys.iteritems():
             for node in cnodes:
                 data.append('%s %s'%(node, cname))
@@ -355,6 +358,7 @@ def cmtys_draw(request, did, cdname, layer, ext):
     return response
 
 
+stdout_file_re = re.compile("\.stdout(\.\d+)?")
 def cmtys_stdout(request, did, cdname, ext=None):
     """Show raw standard output of CD runs.
     """
@@ -369,8 +373,9 @@ def cmtys_stdout(request, did, cdname, ext=None):
 
     outputs = [ ]
     for fname in os.listdir(cd.basedir):
-        if not fname.endswith('.stdout'):
+        if not stdout_file_re.search(fname):
             continue
         outputs.append((fname, open(os.path.join(cd.basedir, fname)).read()))
+    outputs.sort()
 
     return render(request, 'cd20/cmtys_stdout.html', locals())

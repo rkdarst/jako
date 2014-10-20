@@ -1,26 +1,24 @@
 {% extends 'cd20/base.html' %}
-{% block title %}{{cd.name}} on {{netfile}}  {%endblock%}
-{% block pagetitle %}{{cd.name}} on {{netfile}}  {%endblock%}
+{% block title %}{{cd.name_pretty}} on {{netfile}}  {%endblock%}
+
+{% block pagetitle %}{{cd.name_pretty}} on {{netfile}}
+{% if cd.state == "R" %}(Running)
+{% elif cd.state == "Q" %}(Queued)
+{% elif cd.state == "D" %}(Done)
+{% elif cd.state == "X" %}(Died)
+{% endif %}
+{%endblock%}
 {% block body %}
 
-<h2>Method documentation</h2>
+{#<h2>Method documentation</h2>#}
 
-<p>The following is the raw documentation of the CD methods.  Methods
-  inherit from each other, and methods are listed from most to least
-  specific.</p>
 
-{% for name, doc in cddoc %}
-<h3>{{name}}</h3>
-<pre>
-{{ doc }}
-</pre>
-{% endfor %}
+<h2>Set algorithm options</h2>
 
-<h2>Set CD method options</h2>
-
-<p>This section presents possible options for this CD method.  The
+<p>This section presents possible options for this community detection
+  method.  The
   initial values are the default options, or the options for the last
-  CD run.  Submitting will add this run to the queue, and if possible
+  method run.  Submitting will add this run to the queue, and if possible
   begin running right away.</p>
 
 <form method="post">
@@ -33,34 +31,48 @@
 
 
 
-<h2>Communities</h2>
-
-<p>Here, you can visualize and download your community detection results.</p>
-
 {% if cd.state == "" %}
-You have not yet run the community detection, so nothing is available yet.
-
+<br><br><br>
+<strong>Run community detection, and then you will be able to analyze
+the result.</strong>
 
 {% else %}
-<p>Current community state: {{cd.state}}</p>
+
+<h2>Results</h2>
+
 
 {% if cd.state == 'D' %}
-Total runtime was {{cd.dtime|timesince:cd.rtime }}.
-<ul>
+
+Ran {{ cd_desc }} ({{ cdname }}) on {{ds.netfile_name}}, using options of {% for n, v in cd.options_dict.iteritems%} <tt>{{n}}={{v}}</tt>, {% endfor %} Total runtime was
+{{cd.dtime|timesince:cd.rtime }}.<p>
+
+{% if results|length > 1%}<ul>{%endif%}
 {% for cmtys in results %}
-  <li> Layer {{forloop.counter0}}, <i>{{cmtys.label}}</i> {{cmtys|length}} communities.
+  {% if results|length > 1%}<li>{%endif%}
+
+  Layer {{forloop.counter0}}, <i>{{cmtys.label}}</i>, containing
+  {{cmtys|length}} communities.
     <ul>
-      <li> Download:
+      <li> Download communities:
+           <a href="{% url cd20.views.download_cmtys did=ds.id cdname=cdname layer=forloop.counter0 format='txt' %}">One line per community</a>,
+           <a href="{% url cd20.views.download_cmtys did=ds.id cdname=cdname layer=forloop.counter0 format='nc' %}">"node community" pairs</a>
+      </li>
+      <li> Download graphs with community attributes:
+           <a href="{% url cd20.views.download_cmtys did=ds.id cdname=cdname layer=forloop.counter0 format='gexf' %}">GEXF graph</a>,
+           <a href="{% url cd20.views.download_cmtys did=ds.id cdname=cdname layer=forloop.counter0 format='gml' %}">GML</a>
+      </li>
+{% comment %}
     {% for ext, description in download_formats_ %}
     <a href="{% url cd20.views.download_cmtys did=ds.id cdname=cdname layer=forloop.parentloop.counter0 format=ext %}">{{description}}</a>,
     {% endfor %}
       </li>
+{% endcomment %}
       <li> <a href="{% url cd20.views.cmtys_viz did=ds.id cdname=cdname layer=forloop.counter0%}">Interactive visualization</a> </li>
       <li> <a href="{% url cd20.views.cmtys_draw did=ds.id cdname=cdname layer=forloop.counter0 ext=pdf%}">Download PDF</a></li>
     </ul>
-</li>
+{% if results|length > 1%}</li>{%endif%}
 {% endfor %}
-</ul>
+{% if results|length > 1%}</ul>{%endif%}
 
 
 {% elif cd.state == 'R' %}
@@ -69,21 +81,25 @@ Community detection is running {{ cd.rtime|timesince }}.<p>
 {% elif cd.state == 'Q' %}
 Community detection run is queued for {{cd.qtime|timesince}}.<p>
 <input type="button" value="Reload Page" onClick="window.location.reload(true)">
-{% endif %}
-{% if cd.state == 'X' %}
+{% elif cd.state == 'X' %}
 Your community detection died with an error at {{ cd.dtime }}.  If this problem
 persists, please contact the site admin.
-{% endif %}
 
-<h3>Community listing</h3>
+<p>Current community state: {{cd.state}}</p>
+
+{% endif %}  {# Main cd.state selector #}
+
 
 {% if comm_str %}
+<h3>Quick community listing</h3>
 <pre>
 {{comm_str}}
 </pre>
+{% comment%}
 {% elif cd.state == 'D' %}
 <p>Your network has too many nodes so results are not embedded here,
   see the downloads above.</p>
+{% endcomment%}
 {% endif %}
 
 
@@ -92,7 +108,22 @@ persists, please contact the site admin.
 raw output</a> of the CD to verify that options used are correct (first
 line) and that there are no other errors.</p>
 
-{% endif %}
+{% endif %} {# not cd.state == "" #}
+
+
+<h2>Detailed method documentation</h2>
+
+<p>The following is the raw documentation of the CD methods.  Methods
+  inherit from each other, and methods are listed from most to least
+  specific.</p>
+
+{% for name, doc in cddoc %}
+<h3>{{name}}</h3>
+<pre>
+{{ doc }}
+</pre>
+{% endfor %}
+
 
 {% endblock body %}
 
