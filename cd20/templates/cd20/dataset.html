@@ -73,7 +73,7 @@ types.<p>
 
 <h2>Existing results</h2>
 <ul>
-{% for cd in cd_runs %}
+{% for cd in ds.CD_runs %}
   <li><a href={% url cd20.views.cdrun ds.id cd.name %}>{{cd.name}}</a>
   {%if cd.state == 'D'%} Done,
     {{cd.runtime|floatformat}}s, {{cd.n_layers}} layer{{cd.n_layers|pluralize}}.  {#, [{{cd.n_cmty}}] communities per layer.#}

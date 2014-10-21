@@ -222,6 +222,16 @@ class Dataset(models.Model):
             # IndexError is what you get if no CD exists, since we
             # use slice instead of .get()
             raise CD.DoesNotExist
+    def CD_runs(self):
+        """Return a list of all the latest CD runs."""
+        cd_runs = self.cd_set.order_by('name', '-generation')
+        # make a list of only distinct cd runs (by name).  Uses a
+        # shortcircuit operator hack to add and return `cd` in the
+        # loop element.
+        seen = set()
+        cd_runs = [ seen.add(cd.name) or cd for cd in cd_runs
+                    if cd.name not in seen]
+        return cd_runs
 
 
 

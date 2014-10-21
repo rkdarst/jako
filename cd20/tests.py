@@ -6,6 +6,7 @@ Replace this with more appropriate tests for your application.
 """
 
 import os
+import re
 import shutil
 
 from django.test import TestCase
@@ -72,6 +73,11 @@ class BasicTest(TestCase):
         r = self.client.get('/dataset/20/%s/'%cdname)
 
         self.assertContains(r, "state: 'D'")
+
+        # Test that method appears in the "done" list.
+        r = self.client.get('/dataset/20/')
+        self.assertTrue(re.search(r'Existing.*%s'%cdname, r.content,
+                                  re.DOTALL))
 
 
 class TestAlgs(TestCase):
