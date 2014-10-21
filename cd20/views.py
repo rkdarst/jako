@@ -88,16 +88,17 @@ def dataset(request, id):
         netform = NetworkForm(initial={'nettype':ds.nettype})
 
     # CD methods
-    cd_runs = ds.cd_set.all()
     if request.method == 'POST':
         cdnameform = CdNameForm(request.POST)
         if cdnameform.is_valid() and cdnameform.cleaned_data['cdname'] \
                and cdnameform.cleaned_data['cdname']!=u'None':
             cdname = cdnameform.cleaned_data['cdname']
             # Return existing CD run if it exists
-            run_cd = ds.cd_set.filter(name=cdname)
-            if run_cd:
-                return redirect(cdrun, ds.id, run_cd[0].name)
+            try:
+                cd = ds.CD_get_last(cdname=cdname)
+                return redirect(cdrun, ds.id, cd.name)
+            except models.CD.DoesNotExist:
+                pass
             # Make new CD run
             cd = CD(ds=ds, name=cdname, ds_generation=ds.generation)
             cd.save()
@@ -113,7 +114,7 @@ def cdrun(request, did, cdname):
     did = int(did)
     ds = Dataset.objects.get(id=did)
     try:
-        cd = ds.cd_set.get(name=cdname)
+        cd = ds.CD_get_last(cdname=cdname)
     except CD.DoesNotExist:
         return HttpResponse("CD run does not exist", status=404)
     if ds.netfile:
@@ -178,7 +179,8 @@ def cdrun(request, did, cdname):
     if request.method == 'POST':
         optionform = OptionForm(request.POST)
         if optionform.is_valid():
-            cd.options_dict = optionform.cleaned_data
+            #cd.options_dict = optionform.cleaned_data
+            new_options = optionform.cleaned_data
             run = True
         else:
             messages.error(request, "Invalid options given.")
@@ -189,8 +191,19 @@ def cdrun(request, did, cdname):
 
     # Run CD
     if run:
+        # Replace old CD object with a new one.
+        cd_old = cd
+        cd = models.CD(name=cdname,
+                       ds=ds, ds_generation=ds.generation,
+                       generation=cd.generation+1)
+        cd.options_dict = new_options
+        cd.save()
+
         data = cd.run(wait=True)
-        cd = ds.cd_set.get(name=cdname)
+        # Reload from database since it will be changed in another
+        # thread.
+        cd = ds.cd_set.get(name=cdname, generation=cd.generation)
+
         if cd.state == 'D':
             messages.success(request, "CD run complete.")
         elif cd.state in 'QR':
@@ -228,7 +241,7 @@ def cmtys_viz(request, did, cdname, layer, ext=None):
     """
     did = int(did)
     ds = Dataset.objects.get(id=did)
-    cd = ds.cd_set.get(name=cdname)
+    cd = ds.CD_get_last(cdname=cdname)
     breadcrumbs = ((reverse(main), 'Home'),
                    (reverse(dataset, args=(did, )), 'Dataset %s'%did),
                    (reverse(cdrun, args=(did, cdname)), cdname),
@@ -271,7 +284,7 @@ download_formats = [
 def download_cmtys(request, did, cdname, layer, format):
     did = int(did)
     ds = Dataset.objects.get(id=did)
-    cd = ds.cd_set.get(name=cdname)
+    cd = ds.CD_get_last(cdname=cdname)
 
     fname_requested = format
     format = format.rsplit('.')[-1]
@@ -318,7 +331,7 @@ def download_cmtys(request, did, cdname, layer, format):
 def cmtys_draw(request, did, cdname, layer, ext):
     did = int(did)
     ds = Dataset.objects.get(id=did)
-    cd = ds.cd_set.get(name=cdname)
+    cd = ds.CD_get_last(cdname=cdname)
 
     import matplotlib ; matplotlib.use('Agg')
     from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
@@ -364,7 +377,7 @@ def cmtys_stdout(request, did, cdname, ext=None):
     """
     did = int(did)
     ds = Dataset.objects.get(id=did)
-    cd = ds.cd_set.get(name=cdname)
+    cd = ds.CD_get_last(cdname=cdname)
     breadcrumbs = ((reverse(main), 'Home'),
                    (reverse(dataset, args=(did, )), 'Dataset %s'%did),
                    (reverse(cdrun, args=(did, cdname)), cdname),

@@ -205,6 +205,14 @@ class Dataset(models.Model):
             props.append(('weighted edges?', 'no'),)
         return props
 
+    def CD_get_last(self, cdname):
+        cd = self.cd_set.order_by('-generation')[0]
+        print cd, cd.generation
+        return cd
+
+
+
+
 class DatasetProperties(models.Model):
     ds = models.ForeignKey(Dataset)
     ds_generation = models.IntegerField()
@@ -234,6 +242,7 @@ class DatasetProperties(models.Model):
 
 class CD(models.Model):
     name = models.CharField("algorithm class name", max_length=32)
+    generation = models.IntegerField(default=0)
     ds = models.ForeignKey(Dataset)
     ds_generation = models.IntegerField()
     state = models.CharField("state", max_length=1)
