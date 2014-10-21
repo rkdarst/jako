@@ -40,6 +40,8 @@ def new_ds_id():
         id = random.randint(int(10**idx), int(10**(1+idx))-1)
         if Dataset.objects.filter(id=id):
             continue
+        if os.path.exists(join(ROOTDIR, str(id))):
+            continue
         return id
 
 net_types = [
