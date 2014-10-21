@@ -99,7 +99,7 @@ def dataset(request, id):
             if run_cd:
                 return redirect(cdrun, ds.id, run_cd[0].name)
             # Make new CD run
-            cd = CD(ds=ds, name=cdname)
+            cd = CD(ds=ds, name=cdname, ds_generation=ds.generation)
             cd.save()
             messages.success(request, "Created CD run %s on dataset %s."%(cdname, ds.name()))
             return redirect(cdrun, ds.id, cdname)
@@ -202,7 +202,7 @@ def cdrun(request, did, cdname):
     if cd.state == 'D':
         results = cd.get_results()
         download_formats_ = download_formats  # make local variable
-        if cd.ds.nodes < 500:
+        if cd.ds.prop_get('nodes') < 500:
             comm_str = [ ]
             for cmtys in results:
                 cmty = [ ]

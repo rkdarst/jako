@@ -58,17 +58,13 @@ net_types = [
 
 class Dataset(models.Model):
     id = models.AutoField(primary_key=True, default=new_ds_id)
+    generation = models.IntegerField(default=0)
     btime = models.DateTimeField("birth time", auto_now_add=True)
     mtime = models.DateTimeField("modification time", auto_now=True)
     atime = models.DateTimeField("access time", auto_now=True)
     netfile = models.FileField(upload_to=netfile_upload_to)
     nettype = models.CharField(max_length=10,
                                choices=net_types, default='auto')
-
-    nodes = models.IntegerField("number of nodes", null=True)
-    edges = models.IntegerField("number of edges", null=True)
-    clustc = models.FloatField("clustering coef", null=True)
-    weighted = models.IntegerField("clustering coef", null=True)
 
     def __unicode__(self):
         if self.netfile:
@@ -121,6 +117,7 @@ class Dataset(models.Model):
         # Do actual saving of network.
         self.clean_dir()
         self.netfile = f
+        self.generation += 1
         self.save()
         # Make sure that network can be loaded
         try:
@@ -147,7 +144,7 @@ class Dataset(models.Model):
         self.study_network(g)
         netfile_upload_message = \
                  "Successfully uploaded %s: %s nodes, %s edges"%(
-            f.name, self.nodes, self.edges)
+            f.name, self.prop_get('nodes'), self.prop_get('edges'))
         if messenger:
             messenger(messages.SUCCESS, netfile_upload_message)
         return netfile_upload_message
@@ -164,9 +161,6 @@ class Dataset(models.Model):
     def del_network(self):
         self.netfile.delete()
         self.netfile = None
-        self.nodes = None
-        self.edges = None
-        self.clustc = None
         self.save()
     def study_network(self, g=None):
         """Analyze network and store some properties of it.
@@ -176,34 +170,70 @@ class Dataset(models.Model):
             Just for efficiency reasons."""
         if g is None:
             g = self.get_networkx()
-        self.nodes = len(g)
-        self.edges = g.number_of_edges()
-        self.clustc = nx.average_clustering(g)
+        self.prop_set('nodes', len(g))
+        self.prop_set('edges', g.number_of_edges())
+        self.prop_set('avgcc', nx.average_clustering(g))
         if all('weight' in d for a,b,d in g.edges_iter(data=True)):
-            self.weighted = 1
+            self.prop_set('weighted', 1)
         elif any('weight' in d for a,b,d in g.edges_iter(data=True)):
-            self.weighted = 2
+            self.prop_set('weighted', 2)
         else:
-            self.weighted = 0
+            self.prop_set('weighted', 0)
+    def prop_set(self, name, value):
+        DatasetProperties.set(ds=self, generation=self.generation,
+                               name=name, value=value)
+    def prop_get(self, name):
+        DatasetProperties.get(ds=self, generation=self.generation,
+                               name=name)
+    def prop_dict(self):
+        return DatasetProperties.getall(ds=self, generation=self.generation)
     def network_properties(self):
         def round2(x):
             return round(x, -int(math.log(x, 10) - 3))
-        props =  [('number of nodes', self.nodes),
-                  ('number of edges', self.edges),
-                  ('avg. clustering coefficient', round2(self.clustc)),
+        props2 = self.prop_dict()
+        props =  [('number of nodes', props2['nodes']),
+                  ('number of edges', props2['edges']),
+                  ('avg. clustering coefficient', round2(props2['avgcc'])),
                   ]
-        if self.weighted == 1:
+        if props2['weighted'] == 1:
             props.append(('weighted edges?', 'yes (all)'),)
-        elif self.weighted == 2:
+        elif props2['weighted'] == 2:
             props.append(('weighted edges?', 'yes (some, but not all)'),)
-        elif self.weighted == 0:
+        elif props2['weighted'] == 0:
             props.append(('weighted edges?', 'no'),)
         return props
+
+class DatasetProperties(models.Model):
+    ds = models.ForeignKey(Dataset)
+    ds_generation = models.IntegerField()
+    name = models.CharField("property name", max_length=32)
+    value = models.FloatField()
+    #value_str = models.CharField(max_length=32)
+
+    @classmethod
+    def set(cls, ds, name, value, generation=None):
+        if generation is None:
+            generation = ds.generation
+        try:
+            row = cls.objects.get(ds=ds, ds_generation=generation, name=name)
+        except cls.DoesNotExist:
+            row = cls(ds=ds, ds_generation=generation, name=name)
+        row.value = value
+        row.save()
+        return row
+    @classmethod
+    def get(cls, ds, generation, name):
+        return cls.objects.get(ds=ds, ds_generation=generation, name=name)
+    @classmethod
+    def getall(cls, ds, generation):
+        objs = cls.objects.filter(ds=ds, ds_generation=generation)
+        return dict((r.name, r.value) for r in objs)
 
 
 class CD(models.Model):
     name = models.CharField("algorithm class name", max_length=32)
     ds = models.ForeignKey(Dataset)
+    ds_generation = models.IntegerField()
     state = models.CharField("state", max_length=1)
     btime = models.DateTimeField("birth time", auto_now_add=True)
     mtime = models.DateTimeField("modification time", auto_now=True)
