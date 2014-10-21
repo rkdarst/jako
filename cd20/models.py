@@ -205,10 +205,23 @@ class Dataset(models.Model):
             props.append(('weighted edges?', 'no'),)
         return props
 
-    def CD_get_last(self, cdname):
-        cd = self.cd_set.order_by('-generation')[0]
-        print cd, cd.generation
-        return cd
+    def CD_get(self, cdname, cdgen=None):
+        """Return a CD object for this dataset.
+
+        Argument `cdgen` specifies the CD version to get.  If not
+        specified, return the latest CD object.  Otherwise, return
+        that generation id."""
+        if cdgen:
+            cd = self.cd_set.get(name=cdname, generation=cdgen)
+            return cd
+        # Return the latest
+        try:
+            cd = self.cd_set.filter(name=cdname).order_by('-generation')[0]
+            return cd
+        except IndexError:
+            # IndexError is what you get if no CD exists, since we
+            # use slice instead of .get()
+            raise CD.DoesNotExist
 
 
 

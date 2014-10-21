@@ -1,6 +1,6 @@
 # Create your views here.
 
-from functools import partial
+from functools import partial, update_wrapper
 import json
 import logging
 import os.path
@@ -51,6 +51,33 @@ class CdNameForm(forms.Form):
                                )
 
 
+def getmodel(func):
+    """Decorator to open datasets."""
+    # Define function with did and cdname in arguments list, so the
+    # view can be called with either positional or keyword arguments.
+    def _getmodel_inner(request, did=None, cdname=None, **kwargs):
+        #kwargs = dict(kwargs)  # make a copy
+        #did = int(kwargs.pop('did'))
+        ds = Dataset.objects.get(id=did)
+        #if 'cdname' not in kwargs:
+        if not cdname:
+            return func(request, ds=ds, did=did, **kwargs)
+        #cdname = kwargs.pop('cdname')
+        cdgen = kwargs.pop('cdgen', None)
+        if cdgen: cdgen = int(cdgen)
+        try:
+            cd = ds.CD_get(cdname=cdname, cdgen=cdgen)
+        except CD.DoesNotExist:
+            return HttpResponse("CD run does not exist", status=404)
+        if 'layer' not in kwargs:
+            return func(request, ds=ds, did=did, cd=cd, cdname=cdname,**kwargs)
+        layer = int(kwargs.pop('layer'))
+        return func(request, ds=ds, did=did, cd=cd, cdname=cdname,
+                    layer=layer, **kwargs)
+    update_wrapper(_getmodel_inner, func)
+    #_getmodel_inner.__name__ = '@getmodel(%s)'%func.__name__
+    return _getmodel_inner
+
 
 
 def main(request):
@@ -67,12 +94,10 @@ def new(request):
     return redirect(main)
 
 
-
-def dataset(request, id):
-    id = int(id)
-    ds = Dataset.objects.get(id=id)
+@getmodel
+def dataset(request, ds, did):
     breadcrumbs = ((reverse(main), 'Home'),
-                   (None, 'Dataset %s'%id))
+                   (None, 'Dataset %s'%did))
 
     if request.method == 'POST':
         netform = NetworkForm(request.POST, request.FILES)
@@ -83,7 +108,7 @@ def dataset(request, id):
                 f, messenger=partial(messages.add_message, request))
             ds.save()
             #messages.success(request, "Network file updated.")
-            return redirect(dataset, id)
+            return redirect(dataset, did)
     else:
         netform = NetworkForm(initial={'nettype':ds.nettype})
 
@@ -95,7 +120,7 @@ def dataset(request, id):
             cdname = cdnameform.cleaned_data['cdname']
             # Return existing CD run if it exists
             try:
-                cd = ds.CD_get_last(cdname=cdname)
+                cd = ds.CD_get(cdname=cdname)
                 return redirect(cdrun, ds.id, cd.name)
             except models.CD.DoesNotExist:
                 pass
@@ -109,14 +134,8 @@ def dataset(request, id):
     return render(request, 'cd20/dataset.html', locals())
 
 
-
-def cdrun(request, did, cdname):
-    did = int(did)
-    ds = Dataset.objects.get(id=did)
-    try:
-        cd = ds.CD_get_last(cdname=cdname)
-    except CD.DoesNotExist:
-        return HttpResponse("CD run does not exist", status=404)
+@getmodel
+def cdrun(request, ds, did, cd, cdname):
     if ds.netfile:
         netfile = os.path.basename(ds.netfile.name)
     breadcrumbs = ((reverse(main), 'Home'),
@@ -229,26 +248,20 @@ def cdrun(request, did, cdname):
 
 
 
-def cmtys(request):
-    pass
 
-
-
-def cmtys_viz(request, did, cdname, layer, ext=None):
+@getmodel
+def cmtys_viz(request, ds, did, cd, cdname, layer, ext=None):
     """Interactively visualize communities.
 
     Based on http://bl.ocks.org/mbostock/4062045
     """
-    did = int(did)
-    ds = Dataset.objects.get(id=did)
-    cd = ds.CD_get_last(cdname=cdname)
     breadcrumbs = ((reverse(main), 'Home'),
                    (reverse(dataset, args=(did, )), 'Dataset %s'%did),
                    (reverse(cdrun, args=(did, cdname)), cdname),
                    (None, "Visualize")
                    )
 
-    cmtys = cd.get_results()[int(layer)]
+    cmtys = cd.get_results()[layer]
     graphjsonname = 'viz.json'
 
     if ext == '.json':
@@ -281,11 +294,8 @@ download_formats = [
     ('gexf', 'GEXF graph with "cmty" attribute'),
     ('gml', 'GML graph with "cmty" attribute'),
     ]
-def download_cmtys(request, did, cdname, layer, format):
-    did = int(did)
-    ds = Dataset.objects.get(id=did)
-    cd = ds.CD_get_last(cdname=cdname)
-
+@getmodel
+def download_cmtys(request, ds, did, cd, cdname, layer, format):
     fname_requested = format
     format = format.rsplit('.')[-1]
 
@@ -294,7 +304,7 @@ def download_cmtys(request, did, cdname, layer, format):
         return redirect(download_cmtys, did=did, cdname=cdname, layer=layer,
                         format=fname)
 
-    cmtys = cd.get_results()[int(layer)]
+    cmtys = cd.get_results()[layer]
 
     data = [ ]
     content_type = 'text/plain'
@@ -328,11 +338,8 @@ def download_cmtys(request, did, cdname, layer, format):
     return response
 
 
-def cmtys_draw(request, did, cdname, layer, ext):
-    did = int(did)
-    ds = Dataset.objects.get(id=did)
-    cd = ds.CD_get_last(cdname=cdname)
-
+@getmodel
+def cmtys_draw(request, ds, did, cd, cdname, layer, ext):
     import matplotlib ; matplotlib.use('Agg')
     from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
     from matplotlib.figure import Figure
@@ -344,7 +351,7 @@ def cmtys_draw(request, did, cdname, layer, ext):
     ax = fig.add_axes([0, 0, 1, 1])
 
     g = ds.get_networkx()
-    cmtys = cd.get_results()[int(layer)]
+    cmtys = cd.get_results()[layer]
     nodecolors = cmtys.nodecolors()
 
     # Do actual plotting.
@@ -372,12 +379,10 @@ def cmtys_draw(request, did, cdname, layer, ext):
 
 
 stdout_file_re = re.compile("\.stdout(\.\d+)?")
-def cmtys_stdout(request, did, cdname, ext=None):
+@getmodel
+def cmtys_stdout(request, ds, did, cd, cdname):
     """Show raw standard output of CD runs.
     """
-    did = int(did)
-    ds = Dataset.objects.get(id=did)
-    cd = ds.CD_get_last(cdname=cdname)
     breadcrumbs = ((reverse(main), 'Home'),
                    (reverse(dataset, args=(did, )), 'Dataset %s'%did),
                    (reverse(cdrun, args=(did, cdname)), cdname),
