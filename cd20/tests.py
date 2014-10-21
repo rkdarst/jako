@@ -44,8 +44,8 @@ class BasicTest(TestCase):
         ds.save()
         r = self.client.get('/dataset/20/')
         #print r.content
-        self.assertContains(r, u'Current network: None.', )
-        assert 'Current network: None.' in r.content
+        self.assertContains(r, u'New dataset', )
+        #assert 'Current network: None.' in r.content
 
         ds.netfile = utils.get_graph_file('data/karate.gml')
         r = self.client.post('/dataset/20/',
@@ -55,22 +55,23 @@ class BasicTest(TestCase):
         r = self.client.get('/dataset/20/')
         self.assertContains(r, u'karate.gml')
 
+        cdname = 'Infomap'
         r = self.client.post('/dataset/20/',
-                             dict(cdname='Copra'))
-        self.assertRedirects(r, '/dataset/20/Copra/', status_code=302)
+                             dict(cdname=cdname))
+        self.assertRedirects(r, '/dataset/20/%s/'%cdname, status_code=302)
 
-        r = self.client.get('/dataset/20/Copra/')
-        self.assertContains(r, 'Copra')
-        self.assertContains(r, 'not yet run')
+        r = self.client.get('/dataset/20/%s/'%cdname)
+        self.assertContains(r, cdname)
+        self.assertContains(r, "state: ''")
 
         # Run CD
-        r = self.client.post('/dataset/20/Copra/',
+        r = self.client.post('/dataset/20/%s/'%cdname,
                              dict(weighted=False, max_overlap=1, trials=10))
         #self.assertContains(r, 'state: D')
         #print r.content
-        r = self.client.get('/dataset/20/Copra/')
+        r = self.client.get('/dataset/20/%s/'%cdname)
 
-        self.assertContains(r, 'state: D')
+        self.assertContains(r, "state: 'D'")
 
 
 class TestAlgs(TestCase):
