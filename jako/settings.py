@@ -1,7 +1,7 @@
 # Django settings for jako project.
 
-DEBUG = True
-TEMPLATE_DEBUG = DEBUG
+DEBUG = False
+#TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
@@ -10,10 +10,13 @@ ADMINS = (
 
 # Get sqlite database from outside of VCS
 from os.path import dirname
-base = dirname(dirname((__file__)))
+CODEROOT = dirname(dirname((__file__)))
 import sys
-sys.path.append(base)
-dbpath = base+'/db/jako.sqlite'
+sys.path.append(CODEROOT)
+dbpath = CODEROOT+'/db/jako.sqlite'
+#print dbpath
+
+ROOT = '/srv/jako-data/'
 
 MANAGERS = ADMINS
 
@@ -31,7 +34,12 @@ del dbpath
 
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/1.4/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    '.jako.zgib.net',
+    '.jako.zgib.net.',
+    '.jako.becs.aalto.fi',
+    '.jako.becs.aalto.fi.',
+]
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -58,7 +66,7 @@ USE_TZ = True
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/home/media/media.lawrence.com/media/"
-MEDIA_ROOT = base+'/tmp/'
+MEDIA_ROOT = ROOT
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.
@@ -69,7 +77,7 @@ MEDIA_URL = ''
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/home/media/media.lawrence.com/static/"
-STATIC_ROOT = ''
+STATIC_ROOT = '/srv/jako/static/'
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
@@ -192,7 +200,7 @@ LOGGING = {
             'class':'logging.StreamHandler',
             'level':"DEBUG",
             'filters': ['require_debug_false'],
-            'stream': open("tmp/log.txt", 'a'),
+            'stream': open("db/log.txt", 'a'),
             'formatter': 'logline',
             },
     },
@@ -211,14 +219,10 @@ LOGGING = {
     },
 }
 
-# If the site is behind a proxy, set this to True.  Note: remove in
-# production.
-USE_X_FORWARDED_HOST = True
-
 from django.contrib.messages import constants as messages
 MESSAGE_TAGS = {
     messages.ERROR: 'danger',
     }
 
 
-del base, dirname
+del dirname

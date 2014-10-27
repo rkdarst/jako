@@ -1,4 +1,4 @@
-ROOTDIR = '/mnt/data1/srv/jako/tmp/'
+ROOTDIR = '/srv/jako-data/'
 
 
 MAX_NETWORK_BYTES =  512 * 2**10  # 64 KiB
