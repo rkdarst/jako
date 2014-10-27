@@ -54,21 +54,21 @@ Ran {{ cd_desc }} ({{ cdname }}) on {{ds.netfile_name}}, using options of {% for
   {{cmtys|length}} communities.
     <ul>
       <li> Download communities:
-           <a href="{% url cd20.views.download_cmtys did=ds.id cdname=cdname layer=forloop.counter0 format='txt' %}">One line per community</a>,
-           <a href="{% url cd20.views.download_cmtys did=ds.id cdname=cdname layer=forloop.counter0 format='nc' %}">"node community" pairs</a>
+           <a href="{% url 'cd20.views.download_cmtys' did=ds.id cdname=cdname layer=forloop.counter0 format='txt' %}">One line per community</a>,
+           <a href="{% url 'cd20.views.download_cmtys' did=ds.id cdname=cdname layer=forloop.counter0 format='nc' %}">"node community" pairs</a>
       </li>
       <li> Download graphs with community attributes:
-           <a href="{% url cd20.views.download_cmtys did=ds.id cdname=cdname layer=forloop.counter0 format='gexf' %}">GEXF graph</a>,
-           <a href="{% url cd20.views.download_cmtys did=ds.id cdname=cdname layer=forloop.counter0 format='gml' %}">GML</a>
+           <a href="{% url 'cd20.views.download_cmtys' did=ds.id cdname=cdname layer=forloop.counter0 format='gexf' %}">GEXF graph</a>,
+           <a href="{% url 'cd20.views.download_cmtys' did=ds.id cdname=cdname layer=forloop.counter0 format='gml' %}">GML</a>
       </li>
 {% comment %}
     {% for ext, description in download_formats_ %}
-    <a href="{% url cd20.views.download_cmtys did=ds.id cdname=cdname layer=forloop.parentloop.counter0 format=ext %}">{{description}}</a>,
+    <a href="{% url 'cd20.views.download_cmtys' did=ds.id cdname=cdname layer=forloop.parentloop.counter0 format=ext %}">{{description}}</a>,
     {% endfor %}
       </li>
 {% endcomment %}
-      <li> <a href="{% url cd20.views.cmtys_viz did=ds.id cdname=cdname layer=forloop.counter0%}">Interactive visualization</a> </li>
-      <li> <a href="{% url cd20.views.cmtys_draw did=ds.id cdname=cdname layer=forloop.counter0 ext=pdf%}">Download PDF</a></li>
+      <li> <a href="{% url 'cd20.views.cmtys_viz' did=ds.id cdname=cdname layer=forloop.counter0%}">Interactive visualization</a> </li>
+      <li> <a href="{% url 'cd20.views.cmtys_draw' did=ds.id cdname=cdname layer=forloop.counter0 ext=pdf%}">Download PDF</a></li>
     </ul>
 {% if results|length > 1%}</li>{%endif%}
 {% endfor %}
@@ -104,7 +104,7 @@ persists, please contact the site admin.
 
 
 <h2>Raw output</h2>
-<p>You are encouraged to check the <a href="{% url cd20.views.cmtys_stdout did=ds.id cdname=cd.name %}">
+<p>You are encouraged to check the <a href="{% url 'cd20.views.cmtys_stdout' did=ds.id cdname=cd.name %}">
 raw output</a> of the CD to verify that options used are correct (first
 line) and that there are no other errors.</p>
 

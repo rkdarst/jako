@@ -20,7 +20,7 @@ Jako: An online community detection service
   are limits on network size and running time of CD methods.</p>
 
 <p>
-<form action="{% url cd20.views.new %}" method="post">
+<form action="{% url 'cd20.views.new' %}" method="post">
   {% csrf_token %}
 <input type="submit" value="Upload your data!"/>
 </form>
