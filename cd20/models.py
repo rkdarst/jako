@@ -35,7 +35,7 @@ def netfile_upload_to(instance, filename):
     return path
 
 def new_ds_id():
-    max_ = Dataset.objects.count()
+    max_ = Dataset.objects.count() + 1   # "+ 1" handles count=0 simply
     idx = int(math.log10(max_*100))
     while True:
         id = random.randint(int(10**idx), int(10**(1+idx))-1)
