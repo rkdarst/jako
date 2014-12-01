@@ -1,4 +1,5 @@
 import datetime
+import importlib
 import itertools
 import logging
 import math
@@ -45,17 +46,33 @@ def new_ds_id():
         return id
 
 net_types = [
-    ('auto', 'Auto (edgelist, GML, Pajek)'),
+    ('auto', 'Auto (edgelist, GML, Pajek, gexf, graphml)'),
     ('adjlist', 'Adjacency list'),
     ('multiline_adjlist', 'Multiline Adjacency list'),
-    ('edgelist', 'Edge list'),
+    ('edgelist', 'Edge list (weighted or unweighted)'),
     ('gexf', 'GEXF'),
     ('gml', 'GML'),
     ('graphml', 'GraphML'),
+    ('jsonD3nl', 'JSON: d3.js node-link'),
+    ('jsonD3a',  'JSON: d3.js adjecency'),
+    ('jsonD3t', 'JSON: d3.js tree'),
+    #('leda', 'LEDA'),             # not testable, don't have test input
+    #('p2g', '(p2g)'),
     ('pajek', 'Pajek'),
-    ('yaml', 'YAML'),
+    #('shp', 'GIS Shapefile'),     # requires OGR: http://www.gdal.org/
+    #('yaml', 'YAML (networkx)'),  # requires PyYAML
     ]
-
+# The field name above is used to find the reader: networkx.read_NAME.
+# However, some openers do not follow this model.  The full paths to
+# the readers of these things is below.  The modules are imported in
+# the get_networkx method (so that we don't get ImportErrors here).
+net_types_readers = dict(
+    p2g='networkx.readwrite.p2g.read_p2g',
+    json_node_link_data='networkx.readwrite.node_link_graph',
+    jsonD3nl='cd20.utils.d3_node_link_graph',
+    jsonD3a='cd20.utils.d3_adjacency_graph',
+    jsonD3t='cd20.utils.d3_tree_graph',
+)
 
 
 class Dataset(models.Model):
@@ -146,18 +163,32 @@ class Dataset(models.Model):
         self.study_network(g)
         netfile_upload_message = \
                  "Successfully uploaded %s: %s nodes, %s edges"%(
-            f.name, self.prop_get('nodes'), self.prop_get('edges'))
+            f.name, int(self.prop_get('nodes')), int(self.prop_get('edges')))
         if messenger:
             messenger(messages.SUCCESS, netfile_upload_message)
         return netfile_upload_message
 
     def get_networkx(self):
+        """Open graph and return networkx."""
         if not self.netfile:
             raise ValueError("No network has been given yet.")
         if self.nettype == 'auto':
             g = read_any(self.netfile.name)
         else:
-            g = getattr(nx, 'read_'+self.nettype)(self.netfile.name)
+            if self.nettype in net_types_readers:
+                # Having the import logic explicitly contained here
+                # adds overhead and generally wouldn't be a good idea.
+                # But I wanted to abstract things out, so that if
+                # something can't be imported, all of jako doesn't
+                # fail to start.  This should probably be re-done
+                # someday.
+                modname, funcname = \
+                        net_types_readers[self.nettype].rsplit('.', 1)
+                mod = importlib.import_module(modname)
+                reader = getattr(mod, funcname)
+            else:
+                reader = getattr(nx, 'read_'+self.nettype)
+            g = reader(self.netfile.name)
         g = nx.relabel_nodes(g, dict((x, str(x)) for x in g.nodes_iter()))
         return g
     def del_network(self):

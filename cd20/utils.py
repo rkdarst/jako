@@ -96,3 +96,25 @@ def parse_cda_docstring(cda):
                              doc=doc,
                              type=type_)
     return options
+
+
+# JSON readers.  The JSON functions in networks don't operate on files
+# or filenames, JSON has to be preloaded.
+def d3_node_link_graph(fname):
+    import json
+    data = json.load(open(fname))
+    import networkx.readwrite.json_graph
+    g = networkx.readwrite.json_graph.node_link_graph(data)
+    return g
+def d3_adjacency_graph(fname):
+    import json
+    data = json.load(open(fname))
+    import networkx.readwrite.json_graph
+    g = networkx.readwrite.json_graph.adjacency_graph(data)
+    return g
+def d3_tree_graph(fname):
+    import json
+    data = json.load(open(fname))
+    import networkx.readwrite.json_graph
+    g = networkx.readwrite.json_graph.tree_graph(data)
+    return g

@@ -30,7 +30,7 @@ class NetworkForm(forms.Form):
                               help_text="Select network file to upload or to replace existing network.  ")
     nettype = forms.ChoiceField(label="Network type", choices=models.net_types,
                                 help_text='Different formats are read by the <a href="http://networkx.github.io/documentation/networkx-1.9/reference/readwrite.html"><i>read_*</i> '
-                                'functions in networkx</a>.')
+                                'functions in networkx</a>, consult documentation for details.')
 
 import types
 def as_table2(self):
