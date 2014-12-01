@@ -21,7 +21,7 @@ from . import utils
 from . import queue
 queue.spawn_queue = queue.run
 
-class BasicTest(TestCase):
+class _TmpRoot(object):
     @classmethod
     def setUpClass(cls):
         from . import config, models
@@ -34,6 +34,9 @@ class BasicTest(TestCase):
         shutil.rmtree(cls.ROOTDIR)
         from . import config, models
         config.ROOTDIR = models.ROOTDIR = config.ROOTDIR_OLD
+
+
+class BasicTest(_TmpRoot, TestCase):
 
     def test_basic(self):
         self.client.get('/')
@@ -78,6 +81,32 @@ class BasicTest(TestCase):
         r = self.client.get('/dataset/20/')
         self.assertTrue(re.search(r'Existing.*%s'%cdname, r.content,
                                   re.DOTALL))
+
+class TestFormats(_TmpRoot, TestCase):
+    formats = (('gml', 'data/karate.gml'),
+               ('jsonD3nl', 'data/karate_club.d3-node-link'),
+               ('jsonD3a', 'data/karate_club.d3-adj'),
+               )
+    def test(self):
+        for nettype, fname in self.formats:
+            self._do_test(nettype, fname)
+    def _do_test(self, nettype, fname):
+        ds = models.Dataset()
+        did = ds.id
+        ds.save()
+        r = self.client.get('/dataset/%s/'%did)
+        #ds.netfile = utils.get_graph_file(fname)
+
+        r = self.client.post('/dataset/%s/'%did,
+                             dict(netfile=utils.get_graph_file(fname),
+                                  nettype=nettype), follow=True)
+        #r = self.client.get('/dataset/20/')
+        self.assertContains(r, os.path.basename(fname))
+        ds = models.Dataset.objects.get(id=did)
+        #print ds.prop_dict()
+        self.assertEqual(34, ds.prop_get('nodes'), (nettype, fname))
+        self.assertEqual(78, ds.prop_get('edges'), (nettype, fname))
+
 
 
 class TestAlgs(TestCase):
