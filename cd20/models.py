@@ -224,8 +224,8 @@ class Dataset(models.Model):
         def round2(x):
             return round(x, -int(math.log(x, 10) - 3))
         props2 = self.prop_dict()
-        props =  [('number of nodes', props2['nodes']),
-                  ('number of edges', props2['edges']),
+        props =  [('number of nodes', int(props2['nodes'])),
+                  ('number of edges', int(props2['edges'])),
                   ('avg. clustering coefficient', round2(props2['avgcc'])),
                   ]
         if props2['weighted'] == 1:
