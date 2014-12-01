@@ -185,8 +185,8 @@ class Dataset(models.Model):
         DatasetProperties.set(ds=self, generation=self.generation,
                                name=name, value=value)
     def prop_get(self, name):
-        DatasetProperties.get(ds=self, generation=self.generation,
-                               name=name)
+        return DatasetProperties.get(ds=self, generation=self.generation,
+                                     name=name)
     def prop_dict(self):
         return DatasetProperties.getall(ds=self, generation=self.generation)
     def network_properties(self):
@@ -256,7 +256,7 @@ class DatasetProperties(models.Model):
         return row
     @classmethod
     def get(cls, ds, generation, name):
-        return cls.objects.get(ds=ds, ds_generation=generation, name=name)
+        return cls.objects.get(ds=ds, ds_generation=generation, name=name).value
     @classmethod
     def getall(cls, ds, generation):
         objs = cls.objects.filter(ds=ds, ds_generation=generation)
