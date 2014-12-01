@@ -377,7 +377,10 @@ class CD(models.Model):
             if baseclass.__name__ == 'CDMethod':
                 break
             if baseclass.__doc__:
-                doc = utils.dedent(baseclass.__doc__.strip()).strip()
+                doc = baseclass.__doc__
+                # split docstring by "..." in its own paragraph.
+                doc = re.split(r'\n+[ \t]*\n+[ \t]*...\n[ \t]*\n', doc)[0]
+                doc = utils.dedent(doc.strip()).strip()
                 if html:
                     escape(doc)
                     doc = re.sub(r'((https?|ftps?)://[^\s]+[^\s\.,])',
