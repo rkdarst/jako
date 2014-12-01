@@ -200,7 +200,7 @@ LOGGING = {
             'class':'logging.StreamHandler',
             'level':"DEBUG",
             'filters': ['require_debug_false'],
-            'stream': open("db/log.txt", 'a'),
+            'stream': open(CODEROOT+"/db/log.txt", 'a'),
             'formatter': 'logline',
             },
     },
