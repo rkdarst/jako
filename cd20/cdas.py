@@ -18,6 +18,8 @@ descriptions = {
     "IgraphModEVNaive": "Mod. matrix eigenvector (naive)",
     "IgraphSpinglass": "Potts model methods",
     "IgraphWalktrap": "Walktrap method",
+
+    "NullCD": "NullCD (do not detect anything)",
     }
 
 
@@ -41,7 +43,10 @@ methods = [("General-purpose",
              ("IgraphModEVNaive", ),
              ("IgraphSpinglass", ),
              ("IgraphWalktrap", ),
-             ])
+             ]),
+           ("Special methods",
+            [("NullCD", ),
+             ]),
            ]
 
 for group, meths in methods:
