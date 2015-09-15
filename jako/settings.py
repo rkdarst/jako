@@ -35,6 +35,8 @@ del dbpath
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/1.4/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = [
+    '.jako.complex.cs.aalto.fi',
+    '.jako.complex.cs.aalto.fi.',
     '.jako.zgib.net',
     '.jako.zgib.net.',
     '.jako.becs.aalto.fi',
