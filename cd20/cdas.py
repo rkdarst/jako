@@ -7,12 +7,13 @@ descriptions = {
     "CliquePerc": "Clique Percolation",
     "IgraphModularity": "Modularity optimization",
     "SeqCliquePerc": "SequentialCliquePercolation",
+    "Louvain": "Louvain (original code)",
 
     "IgraphCNM": "Clauset-Newman-Moore",
     "IgraphGN": "Girvan-Newman (Edge betweenness)",
     "IgraphInfomap": "Infomap (from igraph)",
     "IgraphLabelPropagation": "RAK label propagation",
-    "IgraphLouvain": "Louvain",
+    "IgraphLouvain": "Louvain (from igraph)",
     "IgraphModularity": "Modularity optimization",
     "IgraphModEV": "Mod. matrix eigenvector",
     "IgraphModEVNaive": "Mod. matrix eigenvector (naive)",
@@ -24,7 +25,8 @@ descriptions = {
 
 
 methods = [("General-purpose",
-            [("IgraphLouvain", ),
+            [("Louvain", ),
+             ("IgraphLouvain", ),
              #("Oslom", "Oslom"),  # non-free
              ("Infomap", ),
              ("LinkCommunities", ),
